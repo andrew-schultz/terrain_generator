@@ -1,0 +1,20 @@
+body {
+	font-family: 'helvetica';
+}
+
+audio {
+	margin: 0 auto;
+	display: block;
+	margin-bottom: 20px;
+}
+
+#mainHeader {
+	text-align: center;
+}
+
+#processingContainer {
+	margin: 0 auto;
+	width: 600px;
+	height: 600px;
+	border: 2px solid;
+}
