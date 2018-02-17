@@ -13,7 +13,7 @@
     "extend": "^3.0.0",
     "processing-js": "^1.6.6",
     "request": "^2.83.0",
-    "request-promise": "^4.1.1"
+    "request-promise": "^4.2.2"
   },
   "devDependencies": {},
   "scripts": {
