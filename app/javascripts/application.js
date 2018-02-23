@@ -28,86 +28,6 @@
 
 // band browser
 
-// $(document).ready(function(){
-//   var access_token = null;
-
-//   $('#search').keyup(function(){
-//     x = $('#search').val();
-//     if(x.length > 2){
-//       search(x)
-//     }
-//   });
-
-//   var initialize = function( query ) {
-//     // read spotify guide for client credentials grant
-//     var credentials = window.btoa( 'dabbb72caacc4724b63213cc4e67f5d9:2fb152e464424f659f6fb3f7f305f7e0' );
-//     var credentials_string_one = "Basic ";
-//     var credentials_string = credentials_string_one.concat( credentials );
-
-//     var xhr = new XMLHttpRequest();
-//     var url = 'https://accounts.spotify.com/api/token'
-
-//     xhr.open( "POST", url, true );
-//     xhr.setRequestHeader( 'Authorization', "Basic " + credentials );
-//     xhr.setRequestHeader( "Content-type", "application/x-www-form-urlencoded" );
-//     xhr.setRequestHeader( 'Access-Control-Allow-Origin', '*' );
-//     xhr.setRequestHeader( 'data-type', 'jsonp' )
-
-//     xhr.onreadystatechange = function( response ) { //Call a function when the state changes.
-//       if( xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200 ) {
-//         // Request finished. Do processing here.
-//         console.log( response );
-//       }
-//     };
-
-//     xhr.send( { grant_type: 'client_credentials' } );
-
-
-//     console.log( credentials_string );
-//     // $.ajax({
-//     //  type: "POST",
-//     //  url: 'https://accounts.spotify.com/api/token',
-//     //  dataType: 'jsonp',
-//     //  headers: {
-//     //    'Authorization': credentials_string,
-//     //    'Access-Control-Allow-Origin': '*'
-//     //  },
-//     //  data: {
-//     //    grant_type: 'client_credentials'
-//     //  },
-//     //  success: function(response){
-//     //    console.log( response );
-//     //    access_token = response;
-//     //    search( query );
-//     //  }
-//     // });
-//   };
-
-//   var search = function(query){
-//     if ( access_token && access_token.length > 0 ) {
-//       console.log( 'we have a token' )
-
-//       $.ajax({
-//         type: "GET",
-//         url: 'https://api.spotify.com/v1/search',
-//         data: {
-//           q: query,
-//           type: 'artist'
-//         },
-//         success: function(response){
-//           update(response)
-//           var id = response.artists.items[0].id;
-//           var name = response.artists.items[0].name;
-//           get_albums(id)
-//           get_tracks(id)
-//           get_related(id)
-//         }
-//       });
-//     }
-//     else {
-//       initialize( query );
-//     }
-//   };
 
 //   var get_related = function(x){
 //     $.ajax({
@@ -327,28 +247,61 @@
 
 
 // });
+var mainInput = document.getElementById( 'search' );
+let token;
+
+mainInput.addEventListener( 'keyup', function(){
+  var input = mainInput.value;
+  if( input.length > 3 ){
+    search( input )
+  }
+});
 
 var search = function( term ) {
-  var xmlHttp = new XMLHttpRequest();
-  xmlHttp.open( "POST", '/search', true );
-  xmlHttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-  xmlHttp.onreadystatechange = function() {
-    if ( xmlHttp.readyState == 4 && xmlHttp.status == 200 ) {
-      var results = JSON.parse( xmlHttp.response );
-      debugger
+  if ( token && token.length > 0 ) {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "POST", '/search', true );
+    xmlHttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    xmlHttp.onreadystatechange = function() {
+      if ( xmlHttp.readyState == 4 && xmlHttp.status == 200 ) {
+        var results = JSON.parse( xmlHttp.response );
+        // build drop down of possible options, based on results returned?
+        // all 20? or top 5? or
+        console.log( results.artists.items[ 0 ] );
+        // update(results)
+        var id = results.artists.items[0].id;
+        var name = results.artists.items[0].name;
+        // get_albums(id)
+        // get_tracks(id)
+        // get_related(id)
+      }
     }
-  }
-  var data = { name: term };
+    var data = { name: term };
 
-  xmlHttp.send( JSON.stringify( data ) );
+    xmlHttp.send( JSON.stringify( data ) );
+  }
+  else {
+    initialize( term );
+  }
 };
 
 var initialize = function( query ) {
+  var preTerm;
+
+  if ( query && query.length > 0 ) {
+    preTerm = query;
+  }
+
   var xmlHttp = new XMLHttpRequest();
   xmlHttp.open( "POST", '/token', true ); // true for asynchronous
   xmlHttp.onreadystatechange = function() {
     if ( xmlHttp.readyState == 4 && xmlHttp.status == 200 ) {
-      search( 'king gizzard' );
+      var results = JSON.parse( xmlHttp.response );
+      token = results.access_token;
+
+      if ( preTerm && preTerm.length > 0 ) {
+        search( preTerm );
+      }
     }
   }
   xmlHttp.send();
