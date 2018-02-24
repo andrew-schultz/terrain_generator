@@ -269,6 +269,6 @@ app.get( '*', function( request, response ) {
   } );
 } );
 
-app.listen( 8000, function () {
-  console.log( 'Example app listening on port', 8000 );
+app.listen( ( process.env.PORT || 8000 ), function () {
+  console.log( 'BandBrowser listening on port', ( process.env.PORT || 8000 ) );
 } );
