@@ -11,6 +11,38 @@ var CLIENT_ID = process.env.CLIENT_ID,
 
 let token;
 
+var buildPath = function( endpoint, payload ) {
+  var path = "https://api.spotify.com/v1/" + endpoint;
+
+  if ( payload.id ) {
+    path = path + "/" + payload.id;
+  }
+
+  if ( payload.append ) {
+    path = path + "/" + payload.append
+  }
+
+  return path
+};
+
+var buildPayload = function( request ) {
+  var payload = {}
+
+  if ( request.id ) {
+    payload.id = request.id;
+  }
+
+  if ( request.append ) {
+    payload.append = request.append;
+  }
+
+  if ( request.qs ) {
+    payload.qs = request.qs;
+  }
+
+  return payload
+};
+
 var spotifyTokenRequest = function( path, payload, callback ) {
   var options = {
     method: "POST",
@@ -34,22 +66,26 @@ var spotifyTokenRequest = function( path, payload, callback ) {
   );
 };
 
-var spotifyRequest = function( path, id, callback ) {
+var spotifyRequest = function( path, payload, callback ) {
   var options = {
     method: 'GET',
-    uri: "https://api.spotify.com/v1/" + path + "/" + id,
+    uri: buildPath( path, payload),
     headers: {
       'Authorization': "Bearer " + token
     },
     json: true
   };
 
+  if ( payload.qs ) {
+    options.qs = payload.qs;
+  }
+
   requestPromise( options ).
   then( callback ).
   catch(
     function( error ) {
-      console.log( 'its a search error' );
-      console.log( error );
+      console.log( 'its a query error' );
+      // console.log( error );
     }
   );
 };
@@ -92,11 +128,11 @@ app.use( function( request, response, next ) {
 app.use( express.static( path.join( __dirname + '/app' )  ) );
 app.use( express.static( path.join( __dirname + '/bin' ) ) );
 
-app.post( '/audio-analysis', function( request, response ) {
+app.post( '/query', function( request, response ) {
   response.set( 'Cache-Control', 'no-cache' );
-  spotifySearchRequest(
-    'audio-analysis/',
-    request.body.id,
+  spotifyRequest(
+    request.body.path,
+    buildPayload( request.body ),
     function( results ) {
       response.send( results );
     }
