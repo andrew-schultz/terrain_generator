@@ -4,12 +4,34 @@ var path = require( 'path' );
 var ejs = require( 'ejs' );
 var requestPromise = require( 'request-promise' );
 var bodyParser = require('body-parser');
+var cookieParser = require('cookie-parser');
+var querystring = require('querystring');
+
 require('dotenv').load();
 
 var CLIENT_ID = process.env.CLIENT_ID,
     CLIENT_SECRET = process.env.CLIENT_SECRET
 
 let token;
+let authToken;
+let refreshToken;
+
+/**
+ * Generates a random string containing numbers and letters
+ * @param  {number} length The length of the string
+ * @return {string} The generated string
+ */
+var generateRandomString = function(length) {
+  var text = '';
+  var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+  for (var i = 0; i < length; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
+};
+
+var stateKey = 'spotify_auth_state';
 
 var buildPath = function( endpoint, payload ) {
   var path = "https://api.spotify.com/v1/" + endpoint;
@@ -50,9 +72,7 @@ var spotifyTokenRequest = function( path, payload, callback ) {
     headers: {
       "Authorization": "Basic " + ( new Buffer( CLIENT_ID  + ":" + CLIENT_SECRET ).toString( 'base64' ) )
     },
-    form: {
-      grant_type: 'client_credentials'
-    },
+    form: payload,
     json: true
   };
 
@@ -127,7 +147,9 @@ app.use( function( request, response, next ) {
 
 app.use( express.static( path.join( __dirname + '/app' )  ) );
 app.use( express.static( path.join( __dirname + '/bin' ) ) );
+app.use( cookieParser() );
 
+// dynamic query
 app.post( '/query', function( request, response ) {
   response.set( 'Cache-Control', 'no-cache' );
   spotifyRequest(
@@ -139,6 +161,7 @@ app.post( '/query', function( request, response ) {
   )
 } );
 
+// search by artist name request
 app.post( '/search', function( request, response ) {
   response.set( 'Cache-Control', 'no-cache' );
   spotifySearchRequest(
@@ -153,6 +176,71 @@ app.post( '/search', function( request, response ) {
   )
 } );
 
+// user authorization token request
+app.get( '/authorize', function( request, response ) {
+  var authCode;
+  var state = generateRandomString( 16 );
+  response.cookie( stateKey, state );
+  var scope = "streaming user-read-birthdate user-read-email user-read-private";
+
+  response.redirect( "https://accounts.spotify.com/authorize" +
+    querystring.stringify( {
+      response_type: 'code',
+      client_id: CLIENT_ID,
+      scope: scope,
+      redirect_uri: 'http://bandbrowser.herokuapp.com/tokencallback',
+      state: state
+    } )
+  );
+} );
+
+app.get( '/tokencallback', function( request, response ) {
+  var code = request.query.code || null;
+  var state = request.query.state || null;
+  var storedState = request.cookies ? request.cookies[ stateKey ] : null;
+
+  if ( state == null || state !== storedState ) {
+    response.redirect( '/#' +
+      querystring.stringify( {
+        error: 'state_mismatch'
+      } )
+    );
+  }
+  else {
+    response.clearCookie( stateKey );
+    spotifyTokenRequest(
+      'https://accounts.spotify.com/api/token',
+      {
+        code: code,
+        redirect_uri: 'http://bandbrowser.herokuapp.com/tokencallback',
+        grant_type: 'authorization_code'
+      },
+      function( results ) {
+        token = results.access_token;
+        refreshToken = body.refresh_token;
+        response.send( results );
+      }
+    );
+  }
+} );
+
+// requesting access token from refresh token
+app.get( '/refresh_token', function( request, response ) {
+  var refreshToken = request.query.refresh_token;
+  spotifyTokenRequest(
+    'https://accounts.spotify.com/api/token',
+    {
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken
+    },
+    function( results ) {
+      var token = body.access_token;
+      response.send( results );
+    }
+  );
+} );
+
+// client token request
 app.post( '/token', function( request, response ) {
   response.set( 'Cache-Control', 'no-cache' );
   spotifyTokenRequest(

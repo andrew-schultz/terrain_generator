@@ -407,6 +407,31 @@ window.addEventListener( 'resize', function() {
 //            initialize
 // ================================
 
+window.onSpotifyWebPlaybackSDKReady = () => {
+  const token = 'BQCV2XeylNZAnxjL98CCtq9Q-t6ezlUxe-r_kGpGj9ab8ZTLF4AQdlf_7FI8-GEmmRlh69Qjw9CZriAlhCPtYCgCIorAbVxCZxYylApng_7cCXrtP6ybp8n7DJOo__DK4iZ0QFXH3G1WqjFYSRNfFwpm0jw6fleYxVEn';
+  const player = new Spotify.Player( {
+    name: 'Web Playback SDK Quick Start Player',
+    getOAuthToken: cb => { cb( token ); }
+  });
+
+  // Error handling
+  player.addListener( 'initialization_error', ( { message } ) => { console.error( message); } );
+  player.addListener( 'authentication_error', ( { message } ) => { console.error( message); } );
+  player.addListener( 'account_error', ( { message } ) => { console.error( message); } );
+  player.addListener( 'playback_error', ( { message } ) => { console.error( message); } );
+
+  // Playback status updates
+  player.addListener( 'player_state_changed', state => { console.log( state ); } );
+
+  // Ready
+  player.addListener( 'ready', ( { device_id } ) => {
+    console.log( 'Ready with Device ID', device_id );
+  } );
+
+  // Connect to the player!
+  player.connect();
+};
+
 var initialize = function( query ) {
   var preTerm;
 
