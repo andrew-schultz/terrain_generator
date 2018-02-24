@@ -59,28 +59,37 @@ var resize = function() {
   }
 };
 
+var flip = function( target ) {
+  debugger
+  var parentContainer = target.parentElement;
+  var id = parentContainer.dataset.album;
+  // showAlbum( id );
+  var flipContainer = parentContainer.offsetParent;
+  flipContainer.classList.add( 'flip' );
+};
+
 // === cleanup ===
 
-var clear = function(){
+var clear = function() {
   genresDiv.innerHTML = null;
   relatedArtistsDiv.innerHTML = null;
   albumsDiv.innerHTML = null;
   tracksDiv.innerHTML = null;
 };
 
-var clearRelated = function(){
+var clearRelated = function() {
   relatedArtistsDiv.innerHTML = null;
 };
 
-var clearAlbums = function(){
+var clearAlbums = function() {
   albumsDiv.innerHTML = null;
 };
 
-var clearTracks = function(){
+var clearTracks = function() {
   tracksDiv.innerHTML = null;
 };
 
-var clearPlay = function(){
+var clearPlay = function() {
   document.getElementById( 'npTitle' ).innerHTML = null;
   document.getElementById( 'play' ).innerHTML = null;
 };
@@ -91,16 +100,19 @@ var clearPlay = function(){
 //   console.log(x);
 // };
 
-var generate = function( x, y ){
-  var image = x.images[ y ].url;
-  var height = x.images[ y ].height;
-  var width = x.images[ y ].width;
+var generate = function( x, y ) {
   var inHeight = window.innerHeight;
-  console.log(inHeight);
-  document.getElementById( 'image' ).innerHTML = "<img id='pic' src='" + image + "'></img>";
+
+  if ( x.images[ y ] ) {
+    var image = x.images[ y ].url;
+    var height = x.images[ y ].height;
+    var width = x.images[ y ].width;
+
+    document.getElementById( 'image' ).innerHTML = "<img id='pic' src='" + image + "'></img>";
+  }
 
   if ( window.innerWidth > 719 ) {
-    document.getElementById( 'right' ).style.height =  inHeight + "px";
+    document.getElementById( 'right' ).style.height = inHeight + "px";
   };
 };
 
@@ -116,50 +128,48 @@ var generateAlbums = function( x ) {
 
   for ( var a = 0; a < albums.length; a++ ) {
     if ( ( a == 0 ) || ( albums[ a ].name != albums[ a - 1 ].name ) ) {
-      var outerDiv = document.createElement( 'div' );
-      outerDiv.classList.add( 'album_container' );
+      // if ( albums[ a ].available_markets.includes( 'US' ) ) {
+        var outerDiv = document.createElement( 'div' );
+        outerDiv.classList.add( 'album_container' );
 
-      var innerDiv = document.createElement( 'div' );
-      innerDiv.classList.add( 'album_container_inner' );
+        var innerDiv = document.createElement( 'div' );
+        innerDiv.classList.add( 'album_container_inner' );
 
-      var albumDiv = document.createElement( 'div' );
-      albumDiv.classList.add( 'album' );
-      albumDiv.dataset.album = albums[ a ].id;
+        var albumDiv = document.createElement( 'div' );
+        albumDiv.classList.add( 'album' );
+        albumDiv.dataset.album = albums[ a ].id;
 
-      var imgNode = document.createElement( 'img' );
-      imgNode.classList.add( 'album_art' );
-      imgNode.src = albums[ a ].images[ 1 ].url;
-      albumDiv.appendChild( imgNode );
+        var imgNode = document.createElement( 'img' );
+        imgNode.classList.add( 'album_art' );
+        imgNode.src = albums[ a ].images[ 1 ].url;
+        albumDiv.appendChild( imgNode );
 
-      var pNode = document.createElement( 'p' );
-      pNode.classList.add( 'album_title' );
-      pNode.textContent = albums[ a ].name;
-      albumDiv.appendChild( pNode );
+        var pNode = document.createElement( 'p' );
+        pNode.classList.add( 'album_title' );
+        pNode.textContent = albums[ a ].name;
+        albumDiv.appendChild( pNode );
 
-      innerDiv.appendChild( albumDiv );
+        innerDiv.appendChild( albumDiv );
 
-      var albumIdNode = document.createElement( 'div' );
-      albumIdNode.classList.add( 'album_id' );
-      albumIdNode.textContent = albums[ a ].id;
-      innerDiv.appendChild( albumIdNode );
+        var albumIdNode = document.createElement( 'div' );
+        albumIdNode.classList.add( 'album_id' );
+        albumIdNode.textContent = albums[ a ].id;
+        innerDiv.appendChild( albumIdNode );
 
-      var albumBackDiv = document.createElement( 'div' );
-      albumBackDiv.classList.add( 'album_back' );
-      albumBackDiv.innerHTML = "iframe src='https://embed.spotify.com/?uri=spotify:album:" + albums[ a ].id + "&theme=white' width='302' height='366' frameborder='0' allowtransparency='true'></iframe>"
-      innerDiv.appendChild( albumBackDiv );
+        var albumBackDiv = document.createElement( 'div' );
+        albumBackDiv.classList.add( 'album_back' );
+        // albumBackDiv.innerHTML = "<iframe src='https://open.spotify.com/embed/?uri=spotify:album:" + albums[ a ].id + "&theme=white' width='302' height='366' frameborder='0' allowtransparency='true'></iframe>";
+        innerDiv.appendChild( albumBackDiv );
 
-      outerDiv.appendChild( innerDiv );
+        outerDiv.appendChild( innerDiv );
 
-      albumsDiv.appendChild( outerDiv );
+        albumsDiv.appendChild( outerDiv );
+      // }
     };
   };
 
   document.querySelector( '.album_container' ).addEventListener( 'click', function( e ) {
-    var parentContainer = e.target.parentElement;
-    var id = parentContainer.attributes['data-album'].value;
-    // showAlbum( id );
-    var flipContainer = parentContainer.offsetParent;
-    flipContainer.classList.add( 'flip' );
+
   } );
 
   document.querySelector( '.album_container' ).addEventListener( 'mouseleave', function( e ) {
@@ -231,10 +241,14 @@ var update = function( x ) {
   var i = 0
   var artist = x.artists.items[ 0 ];
   var name = artist.name;
-  var image = artist.images[ i ].url;
-  var width = artist.images[ i ].width;
-  var height = artist.images[ i ].height;
-  var images = artist.images;
+
+  if ( artist.images[ i ] ) {
+    var image = artist.images[ i ].url;
+    var width = artist.images[ i ].width;
+    var height = artist.images[ i ].height;
+    var images = artist.images;
+  }
+
   // genres returns an array of items
   var genres = artist.genres;
   var url = artist.external_urls.spotify;
@@ -247,7 +261,7 @@ var update = function( x ) {
     nameDiv.innerHTML = "<a id='nameA' href=" + url + ">" + name + "</a></h1>";
   }
 
-  var nameWidth = document.getElementById( 'nameA').style.width;
+  var nameWidth = document.getElementById( 'nameA' ).offsetWidth;
 
   nameDiv.style.width = nameWidth + "px";
 
@@ -378,6 +392,10 @@ document.addEventListener( 'click', function( e ) {
   }
   else if ( e.target && e.target.classList.value.includes( 'track_text' ) ) {
     generateNowPlaying( e.target );
+  }
+  else if ( e.target && e.target.classList.value.includes( 'album_container' ) ) {
+    debugger
+    flip( e.target );
   }
 } );
 

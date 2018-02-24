@@ -93,7 +93,7 @@ body {
 
 #left {
   position: absolute;
-  z-index: 21;
+  z-index: 10;
   background-color: rgba(255, 255, 255, 0.5);
   padding: 10px;
   padding-top: 0px;
@@ -137,7 +137,7 @@ body {
   position: absolute;
   right: 0;
   width: 250px;
-  z-index: 2;
+  z-index: 10;
   background-color: rgba(255, 255, 255, 0.5);
   padding-right: 20px;
   top: 0;
@@ -194,7 +194,7 @@ body {
   width: 80%;
   /*padding-top: 100px;*/
   background-color: rgba(255, 255, 255, 0.5);
-  z-index: 20;
+  z-index: 5;
   position: relative;
   display: flex;
   flex-direction: row;
