@@ -1,5 +1,4 @@
 var express = require( 'express' );
-var app = express();
 var path = require( 'path' );
 var ejs = require( 'ejs' );
 var requestPromise = require( 'request-promise' );
@@ -7,7 +6,9 @@ var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var querystring = require('querystring');
 
-require('dotenv').load();
+if ( !process.env.NODE_ENV || process.env.NODE_ENV === 'development' ) {
+  require( 'dotenv' ).load();
+}
 
 var CLIENT_ID = process.env.CLIENT_ID,
     CLIENT_SECRET = process.env.CLIENT_SECRET
@@ -131,12 +132,16 @@ var spotifySearchRequest = function( path, payload, callback ) {
   );
 };
 
-app.set( 'views', __dirname );
-app.engine( 'html', require( 'ejs' ).renderFile );
-app.set( 'view engine', 'html' );
+var app = express();
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+// app.use( 'port', ( process.env.PORT || 8000 ) );
+
+app.set( 'views', __dirname );
+app.set( 'view engine', 'html' );
+app.engine( 'html', require( 'ejs' ).renderFile );
+
+app.use( bodyParser.json() );
+app.use( bodyParser.urlencoded( { extended: true } ) );
 
 app.use( function( request, response, next ) {
   response.set( 'Access-Control-Allow-Origin', '*' );
@@ -265,5 +270,5 @@ app.get( '*', function( request, response ) {
 } );
 
 app.listen( 8000, function () {
-  console.log( 'Example app listening on port 8000!' );
+  console.log( 'Example app listening on port', 8000 );
 } );
