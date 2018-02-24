@@ -193,7 +193,7 @@ app.get( '/authorize', function( request, response ) {
       response_type: 'code',
       client_id: CLIENT_ID,
       scope: scope,
-      redirect_uri: 'http://bandbrowser.herokuapp.com/tokencallback',
+      redirect_uri: 'http%3A%2F%2Fbandbrowser.herokuapp.com%2Ftokencallback',
       state: state
     } )
   );
@@ -217,7 +217,7 @@ app.get( '/tokencallback', function( request, response ) {
       'https://accounts.spotify.com/api/token',
       {
         code: code,
-        redirect_uri: 'http://bandbrowser.herokuapp.com/tokencallback',
+        redirect_uri: 'http%3A%2F%2Fbandbrowser.herokuapp.com%2Ftokencallback',
         grant_type: 'authorization_code'
       },
       function( results ) {
