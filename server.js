@@ -12,8 +12,7 @@ if ( !process.env.NODE_ENV || process.env.NODE_ENV === 'development' ) {
 
 var CLIENT_ID = process.env.CLIENT_ID,
     CLIENT_SECRET = process.env.CLIENT_SECRET
-    REDIRECT_URI = encodeURI( 'http://localhost:8000/tokencallback' );
-    // REDIRECT_URI = encodeURI( 'https://bandbrowser.herokuapp.com/tokencallback' );
+    REDIRECT_URI = encodeURI( process.env.REDIRECT_URL );
 
 let token;
 let authToken;
