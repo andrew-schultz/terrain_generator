@@ -190,7 +190,7 @@ app.get( '/authorize', function( request, response ) {
   // var scope = "streaming user-read-birthdate user-read-email user-read-private";
   var scope = ["streaming", "user-read-birthdate", "user-read-email", "user-read-private"];
 
-  response.redirect( "https://accounts.spotify.com/authorize" +
+  response.redirect( "https://accounts.spotify.com/authorize?" +
     querystring.stringify( {
       response_type: 'code',
       client_id: CLIENT_ID,
