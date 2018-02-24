@@ -12,6 +12,7 @@ if ( !process.env.NODE_ENV || process.env.NODE_ENV === 'development' ) {
 
 var CLIENT_ID = process.env.CLIENT_ID,
     CLIENT_SECRET = process.env.CLIENT_SECRET
+    REDIRECT_URI = encodeURI( 'https://bandbrowser.herokuapp.com/tokencallback' );
 
 let token;
 let authToken;
@@ -186,14 +187,15 @@ app.get( '/authorize', function( request, response ) {
   var authCode;
   var state = generateRandomString( 16 );
   response.cookie( stateKey, state );
-  var scope = "streaming user-read-birthdate user-read-email user-read-private";
+  // var scope = "streaming user-read-birthdate user-read-email user-read-private";
+  var scope = ["streaming", "user-read-birthdate", "user-read-email", "user-read-private"];
 
   response.redirect( "https://accounts.spotify.com/authorize" +
     querystring.stringify( {
       response_type: 'code',
       client_id: CLIENT_ID,
       scope: scope,
-      redirect_uri: 'http%3A%2F%2Fbandbrowser.herokuapp.com%2Ftokencallback',
+      redirect_uri: REDIRECT_URI,
       state: state
     } )
   );
@@ -217,7 +219,7 @@ app.get( '/tokencallback', function( request, response ) {
       'https://accounts.spotify.com/api/token',
       {
         code: code,
-        redirect_uri: 'http%3A%2F%2Fbandbrowser.herokuapp.com%2Ftokencallback',
+        redirect_uri: REDIRECT_URI,
         grant_type: 'authorization_code'
       },
       function( results ) {
