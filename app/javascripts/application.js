@@ -24,38 +24,6 @@
 
 // renderFrame();
 
-// ####################
-
-// band browser
-
-//   $(window).on('resize', function(){
-//     resize()
-//   });
-
-//   var inHeight = window.innerHeight;
-
-//   var resize = function(){
-//     if(window.innerWidth < 719){
-//       console.log('hello');
-//       var imgHeight = $('#pic').height();
-//       var lHeight = $('#left').height();
-//       var rHeight = $('#right').height();
-//       var nHeight = $('#name').height();
-//       $('#left').css({'margin-top' : imgHeight + nHeight+ "px"});
-//       $('#name').css({'top' : imgHeight + 98 + "px"});
-//       $('#right').css({'height' : "100%"})
-//     }
-
-//     if(window.innerWidth > 719){
-//       $('#right').css({'height' : window.innerHeight + "px"})
-//     }
-//   }
-
-//   $(window).on('resize', function(){
-//     resize()
-//   });
-// });
-
 // ================================
 //            variables
 // ================================
@@ -66,11 +34,30 @@ var relatedArtistsDiv = document.getElementById( 'ra' );
 var albumsDiv = document.getElementById( 'albums' );
 var tracksDiv = document.getElementById( 'tracks' );
 
+var inHeight = window.innerHeight;
+
 let token;
 
 // ================================
 //            functions
 // ================================
+
+var resize = function() {
+  if ( window.innerWidth < 719 ) {
+    var imgHeight = document.getElementById( 'pic' ).style.height;
+    var lHeight = document.getElementById( 'left' ).style.height;
+    var rHeight = document.getElementById( 'right' ).style.height;
+    var nHeight = document.getElementById( 'name' ).style.height;
+
+    document.getElementById( 'left' ).style.marginTop = imgHeight + nHeight+ "px";
+    document.getElementById( 'name' ).style.top = imgHeight + 98 + "px";
+    document.getElementById( 'right' ).style.height =  "100%";
+  }
+
+  if ( window.innerWidth > 719 ) {
+    document.getElementById( 'right' ).style.height = window.innerHeight + "px";
+  }
+};
 
 // === cleanup ===
 
@@ -112,7 +99,7 @@ var generate = function( x, y ){
   console.log(inHeight);
   document.getElementById( 'image' ).innerHTML = "<img id='pic' src='" + image + "'></img>";
 
-  if( window.innerWidth > 719 ) {
+  if ( window.innerWidth > 719 ) {
     document.getElementById( 'right' ).style.height =  inHeight + "px";
   };
 };
@@ -127,8 +114,8 @@ var generateAlbums = function( x ) {
     albumsDiv.style.marginTop = inHeight + "px";
   }
 
-  for( var a = 0; a < albums.length; a++ ) {
-    if( ( a == 0 ) || ( albums[ a ].name != albums[ a - 1 ].name ) ) {
+  for ( var a = 0; a < albums.length; a++ ) {
+    if ( ( a == 0 ) || ( albums[ a ].name != albums[ a - 1 ].name ) ) {
       var outerDiv = document.createElement( 'div' );
       outerDiv.classList.add( 'album_container' );
 
@@ -189,7 +176,7 @@ var generateTracks = function( x ) {
   document.getElementById( 'tt_title' ).textContent = "Top Tracks";
   document.getElementById( 'tt_subtitle' ).textContent = "select a song to listen";
 
-  for( var t = 0; t < tracks.length; t++ ) {
+  for ( var t = 0; t < tracks.length; t++ ) {
     var node = document.createElement( 'li' );
     node.classList.add( 'track_text' );
     node.dataset.track = tracks[ t ].uri;
@@ -205,7 +192,7 @@ var generateRelated = function( x ) {
   var related = x.artists;
   clearRelated();
 
-  for( var g = 0; g < related.length; g++ ) {
+  for ( var g = 0; g < related.length; g++ ) {
     var last = related[ g ].images.length-1;
     var sm_image = related[ g ].images[ last ].url;
     var r_name = related[ g ].name
@@ -224,7 +211,8 @@ var generateRelated = function( x ) {
 
     document.getElementById( 'ra' ).appendChild( node );
   };
-  // resize();
+
+  resize();
 };
 
 var generateNowPlaying = function( target ) {
@@ -268,7 +256,7 @@ var update = function( x ) {
   document.getElementById( 'g_title' ).text = "Genres";
   document.getElementById( 'ra_title' ).text = "Related Artists";
 
-  for( var g = 0; g < genres.length; g++ ) {
+  for ( var g = 0; g < genres.length; g++ ) {
     var node = document.createElement( 'li' );
     var textnode = document.createTextNode( genres[ g ] );
     node.appendChild( textnode );
@@ -291,7 +279,7 @@ var getRelated = function( id ) {
       var results = JSON.parse( xmlHttp.response );
       generateRelated( results );
     }
-  }
+  };
 
   var data = {
     id: id,
@@ -311,7 +299,7 @@ var getAlbums = function( id ) {
       var results = JSON.parse( xmlHttp.response );
       generateAlbums( results );
     }
-  }
+  };
 
   var data = {
     id: id,
@@ -331,7 +319,7 @@ var getTracks = function( id ) {
       var results = JSON.parse( xmlHttp.response );
       generateTracks( results );
     }
-  }
+  };
 
   var data = {
     id: id,
@@ -362,7 +350,8 @@ var search = function( term ) {
           getRelated(id)
         }
       }
-    }
+    };
+
     var data = { name: term };
 
     xmlHttp.send( JSON.stringify( data ) );
@@ -392,6 +381,10 @@ document.addEventListener( 'click', function( e ) {
   }
 } );
 
+window.addEventListener( 'resize', function() {
+  resize();
+} );
+
 // ================================
 //            initialize
 // ================================
@@ -414,7 +407,8 @@ var initialize = function( query ) {
         search( preTerm );
       }
     }
-  }
+  };
+
   xmlHttp.send();
 };
 
