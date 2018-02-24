@@ -12,7 +12,8 @@ if ( !process.env.NODE_ENV || process.env.NODE_ENV === 'development' ) {
 
 var CLIENT_ID = process.env.CLIENT_ID,
     CLIENT_SECRET = process.env.CLIENT_SECRET
-    REDIRECT_URI = encodeURI( 'https://bandbrowser.herokuapp.com/tokencallback' );
+    REDIRECT_URI = encodeURI( 'http://localhost:8000/tokencallback' );
+    // REDIRECT_URI = encodeURI( 'https://bandbrowser.herokuapp.com/tokencallback' );
 
 let token;
 let authToken;
@@ -224,8 +225,15 @@ app.get( '/tokencallback', function( request, response ) {
       },
       function( results ) {
         token = results.access_token;
-        refreshToken = body.refresh_token;
-        response.send( results );
+        refreshToken = results.refresh_token;
+
+        response.render(
+          'index.html',
+          {
+            access_token: token,
+            refresh_token: refreshToken
+          }
+        );
       }
     );
   }
@@ -241,7 +249,7 @@ app.get( '/refresh_token', function( request, response ) {
       refresh_token: refreshToken
     },
     function( results ) {
-      var token = body.access_token;
+      var token = results.access_token;
       response.send( results );
     }
   );
