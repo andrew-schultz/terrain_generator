@@ -19,33 +19,43 @@
     </div> -->
 
     <!-- band browser template -->
+ <!--    <div id="topPlayer">
+      <p id="topPlayerTitle">Now Playing</p>
+    </div>
+
     <div id="head">
       <h1 id="title">Band Browser</h1>
       <p>Type in an artists name</p>
       <input type="text" id="search"></input>
-      <a href="/authorize" class="btn btn-primary">Log in with Spotify</a>
+      <a href="/authorize" id = "loginButton" class="btn btn-primary">Log in with Spotify</a>
     </div>
+
     <div id="band_info">
       <h1 id="name"></h1>
       <div id="image"></div>
     </div>
+
     <div id="left">
       <div id="genre_div">
         <h3 id="g_title"></h3>
         <ul id="genres"></ul>
       </div>
+
       <h3 id="followers"></h3>
       <h3 id="popularity"></h3>
+
       <div id="top_tracks">
         <h3 id="tt_title"></h3>
         <h5 id="tt_subtitle"></h5>
         <ul id="tracks"></ul>
       </div>
+
       <div id="nowPlaying">
         <h2 id="npTitle"></h2>
         <div id="play"></div>
       </div>
     </div>
+
     <div id="right">
       <div id="related_artists">
         <h3 id="ra_title"></h3>
@@ -55,11 +65,23 @@
 
     <div id="albums">
       <h2 id="albumT"></h2>
+    </div> -->
+
+    <div id="head">
+      <p>Type in an artists name</p>
+      <input type="text" id="search"></input>
+    </div>
+
+    <div id="main-container">
+
+
     </div>
 
     <!-- Modules -->
     <!-- <script src="https://sdk.scdn.co/spotify-player.js"></script> -->
     <script src="javascripts/application.js"></script>
+    <script src="javascripts/artists.js"></script>
+    <script src="javascripts/albums.js"></script>
 
     <!-- Controllers -->
 

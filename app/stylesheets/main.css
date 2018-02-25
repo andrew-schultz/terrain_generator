@@ -130,7 +130,23 @@ body {
 }
 
 #play {
+}
 
+.hide {
+  display: none;
+}
+
+#topPlayer {
+  width: 550px;
+  height: 80px;
+  background-color: #ffffff;
+  color: #000000;
+  top: 0;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  position: fixed;
+  z-index: 50;
 }
 
 #right {
@@ -359,5 +375,20 @@ body {
     right: 0;
     background-color: rgba(255, 255, 255, 0.5);
   }
+}
+
+#main-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  align-content: flex-start;
+}
+
+.artist {
+  flex-grow: 1;
+  flex-basis: auto;
+  min-width: 200px;
 }
 

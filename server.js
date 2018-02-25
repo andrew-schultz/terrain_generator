@@ -67,6 +67,32 @@ var buildPayload = function( request ) {
   return payload
 };
 
+var buildConnectPayload = function( request ) {
+  var payload = {};
+
+  if ( request.path ) {
+    payload.path = request.path;
+  }
+
+  if ( request.qs ) {
+    payload.qs = request.qs;
+  }
+
+  if ( request.method ) {
+    payload.method = request.method;
+  }
+
+  if ( request.token ) {
+    payload.token = request.token;
+  }
+
+  if ( request.body ) {
+    payload.body = request.body;
+  }
+
+  return payload
+};
+
 var spotifyTokenRequest = function( path, payload, callback ) {
   var options = {
     method: "POST",
@@ -133,6 +159,43 @@ var spotifySearchRequest = function( path, payload, callback ) {
   );
 };
 
+var spotifyConnectRequest = function( payload, callback ) {
+  var url;
+
+  if ( payload.path !== null ) {
+    url = "https://api.spotify.com/v1/me/player/" + payload.path;
+  }
+  else {
+    url = "https://api.spotify.com/v1/me/player";
+  }
+
+  var options = {
+    method: payload.method,
+    uri: url,
+    headers: {
+      'Authorization': "Bearer " + payload.token,
+    },
+    json: true
+  }
+
+  if ( payload.qs ) {
+    options.qs = payload.qs
+  }
+
+  if ( payload.body ) {
+    options.body = payload.body
+  }
+console.log( options )
+  requestPromise( options ).
+  then( callback ).
+  catch(
+    function( error ) {
+      console.log( 'its a connect error' );
+      console.log( error.message );
+    }
+  );
+};
+
 var app = express();
 
 // app.use( 'port', ( process.env.PORT || 8000 ) );
@@ -182,13 +245,24 @@ app.post( '/search', function( request, response ) {
   )
 } );
 
+// connect api interactions
+app.post( '/connect', function( request, response ) {
+  response.set( 'Cache-Control', 'no-cache' );
+  spotifyConnectRequest(
+    buildConnectPayload( request.body ),
+    function( results ) {
+      console.log( results );
+      response.send( results );
+    }
+  );
+} );
+
 // user authorization token request
 app.get( '/authorize', function( request, response ) {
   var authCode;
   var state = generateRandomString( 16 );
   response.cookie( stateKey, state );
-  // var scope = "streaming user-read-birthdate user-read-email user-read-private";
-  var scope = ["streaming", "user-read-birthdate", "user-read-email", "user-read-private"];
+  var scope = [ "user-read-currently-playing", "streaming", "user-read-playback-state", "user-read-birthdate", "user-read-email", "user-read-private", "user-modify-playback-state" ];
 
   response.redirect( "https://accounts.spotify.com/authorize?" +
     querystring.stringify( {
@@ -224,14 +298,14 @@ app.get( '/tokencallback', function( request, response ) {
       },
       function( results ) {
         token = results.access_token;
+        authToken = results.access_token;
         refreshToken = results.refresh_token;
 
-        response.render(
-          'index.html',
-          {
+        response.redirect( '/#' + '?' +
+          querystring.stringify( {
             access_token: token,
             refresh_token: refreshToken
-          }
+          } )
         );
       }
     );
