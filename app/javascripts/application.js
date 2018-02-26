@@ -29,10 +29,6 @@
 // ================================
 
 var mainInput = document.getElementById( 'search' );
-var genresDiv = document.getElementById( 'genres' );
-var relatedArtistsDiv = document.getElementById( 'ra' );
-var albumsDiv = document.getElementById( 'albums' );
-var tracksDiv = document.getElementById( 'tracks' );
 
 var inHeight = window.innerHeight;
 
@@ -41,7 +37,8 @@ var authToken;
 
 var deviceId;
 
-var displayedArtists = [];
+var trackData = {};
+var searchData = {};
 
 // ================================
 //            functions
@@ -64,418 +61,226 @@ var resize = function() {
   }
 };
 
-var flip = function( target ) {
-  debugger
-  var parentContainer = target.parentElement;
-  var id = parentContainer.dataset.album;
-  // showAlbum( id );
-  var flipContainer = parentContainer.offsetParent;
-  flipContainer.classList.add( 'flip' );
-};
+// ================
+// Generation
+// ================
 
-// === cleanup ===
+var displayResults = function( results, type ) {
+  var resultContainer = document.getElementById( `${type}-container` );
 
-var clear = function() {
-  // genresDiv.innerHTML = null;
-  // relatedArtistsDiv.innerHTML = null;
-  // albumsDiv.innerHTML = null;
-  tracksDiv.innerHTML = null;
-};
-
-var clearRelated = function() {
-  relatedArtistsDiv.innerHTML = null;
-};
-
-var clearAlbums = function() {
-  albumsDiv.innerHTML = null;
-};
-
-var clearTracks = function() {
-  tracksDiv.innerHTML = null;
-};
-
-var clearPlay = function() {
-  document.getElementById( 'npTitle' ).innerHTML = null;
-  document.getElementById( 'play' ).innerHTML = null;
-};
-
-// === generation ===
-
-// var showAlbum = function(x){
-//   console.log(x);
-// };
-
-var generate = function( x, y ) {
-  var inHeight = window.innerHeight;
-
-  if ( x.images[ y ] ) {
-    var image = x.images[ y ].url;
-    var height = x.images[ y ].height;
-    var width = x.images[ y ].width;
-
-    // document.getElementById( 'image' ).innerHTML = "<img id='pic' src='" + image + "'></img>";
+  if ( type == 'artist' ) {
+    while ( resultContainer.firstChild ) {
+      resultContainer.removeChild( resultContainer.firstChild );
+    }
   }
 
-  if ( window.innerWidth > 719 ) {
-    // document.getElementById( 'right' ).style.height = inHeight + "px";
-  };
-};
-
-var generateAlbums = function( x ) {
-  clearAlbums();
-  albumsDiv.innerHTML = "<h1 id='albumT'>Albums</h1>";
-  var albums = x.items;
-  var inHeight = document.documentElement.clientHeight;
-
-  if ( window.innerWidth > 719 ) {
-    albumsDiv.style.marginTop = inHeight + "px";
-  }
-
-  for ( var a = 0; a < albums.length; a++ ) {
-    if ( ( a == 0 ) || ( albums[ a ].name != albums[ a - 1 ].name ) ) {
-      // if ( albums[ a ].available_markets.includes( 'US' ) ) {
-        var outerDiv = document.createElement( 'div' );
-        outerDiv.classList.add( 'album_container' );
-
-        var innerDiv = document.createElement( 'div' );
-        innerDiv.classList.add( 'album_container_inner' );
-
-        var albumDiv = document.createElement( 'div' );
-        albumDiv.classList.add( 'album' );
-        albumDiv.dataset.album = albums[ a ].id;
-
-        var imgNode = document.createElement( 'img' );
-        imgNode.classList.add( 'album_art' );
-        imgNode.src = albums[ a ].images[ 1 ].url;
-        albumDiv.appendChild( imgNode );
-
-        var pNode = document.createElement( 'p' );
-        pNode.classList.add( 'album_title' );
-        pNode.textContent = albums[ a ].name;
-        albumDiv.appendChild( pNode );
-
-        innerDiv.appendChild( albumDiv );
-
-        var albumIdNode = document.createElement( 'div' );
-        albumIdNode.classList.add( 'album_id' );
-        albumIdNode.textContent = albums[ a ].id;
-        innerDiv.appendChild( albumIdNode );
-
-        var albumBackDiv = document.createElement( 'div' );
-        albumBackDiv.classList.add( 'album_back' );
-        // albumBackDiv.innerHTML = "<iframe src='https://open.spotify.com/embed/?uri=spotify:album:" + albums[ a ].id + "&theme=white' width='302' height='366' frameborder='0' allowtransparency='true'></iframe>";
-        innerDiv.appendChild( albumBackDiv );
-
-        outerDiv.appendChild( innerDiv );
-
-        albumsDiv.appendChild( outerDiv );
-      // }
-    };
-  };
-
-  document.querySelector( '.album_container' ).addEventListener( 'click', function( e ) {
-
-  } );
-
-  document.querySelector( '.album_container' ).addEventListener( 'mouseleave', function( e ) {
-    var children = e.target.children;
-    children[ 0 ].classList.remove( 'flip' );
-  } );
-};
-
-var generateTracks = function( x ) {
-  var tracks = x.tracks;
-
-  clearTracks();
-
-  document.getElementById( 'tt_title' ).textContent = "Top Tracks";
-  document.getElementById( 'tt_subtitle' ).textContent = "select a song to listen";
-
-  for ( var t = 0; t < tracks.length; t++ ) {
-    var node = document.createElement( 'li' );
-    node.classList.add( 'track_text' );
-    node.dataset.track = tracks[ t ].uri;
-    node.dataset.id = tracks[ t ].id;
-
-    var textnode = document.createTextNode( tracks[ t ].name );
-    node.appendChild( textnode );
-
-    document.getElementById( 'tracks' ).appendChild( node );
-  };
-};
-
-var generateRelated = function( x ) {
-  var related = x.artists;
-  clearRelated();
-
-  for ( var g = 0; g < related.length; g++ ) {
-    var last = related[ g ].images.length-1;
-    var sm_image = related[ g ].images[ last ].url;
-    var r_name = related[ g ].name
-
-    var node = document.createElement( 'li' );
-    node.classList.add( 'follower_text' );
-
-    var imgNode = document.createElement( 'img' );
-    imgNode.classList.add( 'sm_circle' );
-    imgNode.src = sm_image;
-    node.appendChild( imgNode );
-
-    var spanNode = document.createElement( 'span' );
-    spanNode.textContent = r_name;
-    node.appendChild( spanNode );
-
-    document.getElementById( 'ra' ).appendChild( node );
-  };
-
-  resize();
-};
-
-var generateNowPlaying = function( target ) {
-  // clearPlay();
-
-  var uri = target.dataset.track;
-  var id = target.dataset.id;
-
-  // document.getElementById( 'topPlayerTitle' ).textContent = "Now Playing";
-
-  // play( {
-  //   playerInstance: new Spotify.Player( { name: "..." } ),
-  //   spotify_uri: target.dataset.track
-  // } );
-  getTrackFeatures( id );
-  getTrackAnalysis( id );
-  document.getElementById( 'topPlayer' ).classList.remove( 'hide' );
-};
-
-var update = function( x ) {
-  clear();
-  var i = 0
-  var artist = x.artists.items[ 0 ];
-  var name = artist.name;
-
-  if ( artist.images[ i ] ) {
-    var image = artist.images[ i ].url;
-    var width = artist.images[ i ].width;
-    var height = artist.images[ i ].height;
-    var images = artist.images;
-  }
-
-  // genres returns an array of items
-  var genres = artist.genres;
-  var url = artist.external_urls.spotify;
-  var followers = artist.followers.total;
-  var popularity = artist.popularity;
-
-  var nameDiv = document.getElementById( 'name' );
-
-  if ( name.length > 0 ) {
-    nameDiv.innerHTML = "<a id='nameA' href=" + url + ">" + name + "</a></h1>";
-  }
-
-  var nameWidth = document.getElementById( 'nameA' ).offsetWidth;
-
-  nameDiv.style.width = nameWidth + "px";
-
-  // document.getElementById( 'followers' ).text = "Followers: " + followers;
-  // document.getElementById( 'popularity' ).text = "Popularity: " + popularity;
-  // document.getElementById( 'g_title' ).text = "Genres";
-  // document.getElementById( 'ra_title' ).text = "Related Artists";
-
-  // for ( var g = 0; g < genres.length; g++ ) {
-  //   var node = document.createElement( 'li' );
-  //   var textnode = document.createTextNode( genres[ g ] );
-  //   node.appendChild( textnode );
-  //   document.getElementById( 'genres' ).appendChild( node );
-  // };
-
-  generate( artist, i );
-};
-
-var buildArtistDiv = function( artist ) {
-  var node = document.createElement( 'div' );
-  node.dataset.id = artist.id;
-  node.classList.add( 'artist' );
-  node.id = artist.id;
-
-  var titleNode = document.createElement( 'h2' );
-  titleNode.textContent = artist.name;
-
-  node.appendChild( titleNode );
-
-  node.addEventListener( 'click', getAlbums( artist.id ) )
-
-  document.getElementById( 'main-container' ).appendChild( node );
-};
-
-var removeArtistDiv = function( artist ) {
-  var node = document.getElementById( artist.id );
-  node.outerHTML = "";
-  delete node;
-};
-
-var displayArtists = function( artists ) {
-  artists.items.forEach(
-    function( artist ) {
-      if ( displayedArtists.indexOf( artist ) < 0 ) {
-        buildArtistDiv( artist );
-        displayedArtists.push( artist );
-      }
-
-      displayedArtists.forEach(
-        function( da ) {
-          if ( artists.items.indexOf( da ) < 0 ) {
-            removeArtistDiv( da );
-            displayedArtists.splice( displayedArtists.indexOf( da ), 1 );
-          }
-        }
-      );
+  results.items.forEach(
+    function( result ) {
+      buildDiv( result, type );
     }
   );
 };
 
-// ================================
-//           transitions
-// ================================
+var transition = function( div, type ) {
+  var container = document.getElementById( `${type}-container` );
+  var childrenArray = Array.from( container.children );
 
-var albumTransition = function( artistDiv ) {
-  debugger
+  childrenArray.forEach(
+    function( child ) {
+      if ( child.dataset.id !== div.dataset.id ) {
+        removeDiv( child );
+      }
+    }
+  );
+
+  if ( type == 'artist' ) {
+    getAlbums( div.dataset.id ).
+    then(
+      function( results ) {
+        trackData.artist = filterData( div.dataset.id, 'artist' );
+        displayResults( results, 'album' );
+      }
+    )
+  }
+  else if ( type == 'album' ) {
+    getTracks( div.dataset.id ).
+    then(
+      function( results ) {
+        trackData.album = filterData( div.dataset.id, 'album' );
+        displayResults( results, 'track' );
+      }
+    );
+  }
+  else if ( type == 'track' ) {
+    Promise.all( [ getTrackFeatures( div.dataset.id ), getTrackAnalysis( div.dataset.id ) ] ).
+    then(
+      function( results ) {
+        trackData.features = results[ 0 ];
+        trackData.analysis = results[ 1 ];
+        trackData.track = filterData( div.dataset.id, 'track' );
+        debugger
+        // var myp5 = new p5( createVisualizer, 'visualizer-container' );
+      }
+    )
+  }
+};
+
+var removeDiv = function( div ) {
+  var node = document.getElementById( div.id );
+  node.outerHTML = "";
+  delete node;
+};
+
+var buildDiv = function( data, type ) {
+  var node = document.createElement( 'div' );
+  node.dataset.id = data.id;
+  node.classList.add( type, 'entry' );
+  node.id = data.id;
+
+  var titleNode = document.createElement( 'h2' );
+  titleNode.textContent = data.name;
+
+  node.appendChild( titleNode );
+
+  document.getElementById( `${type}-container` ).appendChild( node );
+};
+
+// ===========
+// filter data
+// ===========
+
+var filterData = function( id, type ) {
+  var result;
+
+  searchData[ type ].forEach(
+    function( item ) {
+      if ( item.id == id ) {
+        result = item;
+      }
+    }
+  );
+
+  return result;
 };
 
 // ================================
 //             queries
 // ================================
 
-var getRelated = function( id ) {
-  var xmlHttp = new XMLHttpRequest();
-  xmlHttp.open( 'POST', '/query', true );
-  xmlHttp.setRequestHeader( 'Content-Type', 'application/json;charset=UTF-8' );
-  xmlHttp.onreadystatechange = function() {
-    if ( xmlHttp.readyState == 4 && xmlHttp.status == 200 ) {
-      var results = JSON.parse( xmlHttp.response );
-      generateRelated( results );
-    }
-  };
-
-  var data = {
-    id: id,
-    path: 'artists',
-    append: 'related-artists'
-  };
-
-  xmlHttp.send( JSON.stringify( data ) );
-};
-
 var getAlbums = function( id ) {
-  var xmlHttp = new XMLHttpRequest();
-  xmlHttp.open( 'POST', '/query', true );
-  xmlHttp.setRequestHeader( 'Content-Type', 'application/json;charset=UTF-8' );
-  xmlHttp.onreadystatechange = function() {
-    if ( xmlHttp.readyState == 4 && xmlHttp.status == 200 ) {
-      var results = JSON.parse( xmlHttp.response );
-      // generateAlbums( results );
-      var filteredResults
-      console.log( results );
-    }
-  };
-
-  var data = {
-    id: id,
-    path: 'artists',
-    append: 'albums',
-    qs: {
-      album_type: 'album,single',
-      market: 'US'
-    }
-  };
-
-  xmlHttp.send( JSON.stringify( data ) );
-};
-
-var getTracks = function( id ) {
-  var xmlHttp = new XMLHttpRequest();
-  xmlHttp.open( 'POST', '/query', true );
-  xmlHttp.setRequestHeader( 'Content-Type', 'application/json;charset=UTF-8' );
-  xmlHttp.onreadystatechange = function() {
-    if ( xmlHttp.readyState == 4 && xmlHttp.status == 200 ) {
-      var results = JSON.parse( xmlHttp.response );
-      generateTracks( results );
-    }
-  };
-
-  var data = {
-    id: id,
-    path: 'artists',
-    append: 'top-tracks',
-    qs: { country: 'US' }
-  };
-
-  xmlHttp.send( JSON.stringify( data ) );
-};
-
-var getTrackFeatures = function( id ) {
-  var xmlHttp = new XMLHttpRequest();
-  xmlHttp.open( 'POST', '/query', true );
-  xmlHttp.setRequestHeader( 'Content-Type', 'application/json;charset=UTF-8' );
-  xmlHttp.onreadystatechange = function() {
-    if ( xmlHttp.readyState == 4 && xmlHttp.status == 200 ) {
-      var results = JSON.parse( xmlHttp.response );
-      console.log( 'features', results );
-    }
-  };
-
-  var data = {
-    id: id,
-    path: 'audio-features',
-  };
-
-  xmlHttp.send( JSON.stringify( data ) );
-}
-
-var getTrackAnalysis = function( id ) {
-  var xmlHttp = new XMLHttpRequest();
-  xmlHttp.open( 'POST', '/query', true );
-  xmlHttp.setRequestHeader( 'Content-Type', 'application/json;charset=UTF-8' );
-  xmlHttp.onreadystatechange = function() {
-    if ( xmlHttp.readyState == 4 && xmlHttp.status == 200 ) {
-      var results = JSON.parse( xmlHttp.response );
-      console.log( 'analysis', results );
-    }
-  };
-
-  var data = {
-    id: id,
-    path: 'audio-analysis',
-  };
-
-  xmlHttp.send( JSON.stringify( data ) );
-}
-
-var search = function( term ) {
-  if ( token && token.length > 0 ) {
+  return new Promise( ( resolve, reject ) => {
     var xmlHttp = new XMLHttpRequest();
-    xmlHttp.open( 'POST', '/search', true );
+    xmlHttp.open( 'POST', '/query', true );
     xmlHttp.setRequestHeader( 'Content-Type', 'application/json;charset=UTF-8' );
     xmlHttp.onreadystatechange = function() {
       if ( xmlHttp.readyState == 4 && xmlHttp.status == 200 ) {
         var results = JSON.parse( xmlHttp.response );
-        // build drop down of possible options, based on results returned?
-        // all 20? or top 5? or
-        if ( results.artists.items[ 0 ] ) {
-          // update( results )
-          // var id = results.artists.items[0].id;
-          // var name = results.artists.items[0].name;
-          // getAlbums( id )
-          // getTracks(id)
-          // getRelated(id)
-          displayArtists( results.artists );
-        }
+        searchData.album = results.items;
+        resolve( results );
       }
     };
 
-    var data = { name: term };
+    var data = {
+      id: id,
+      path: 'artists',
+      append: 'albums',
+      qs: {
+        album_type: 'album,single',
+        market: 'US'
+      }
+    };
 
     xmlHttp.send( JSON.stringify( data ) );
+  } );
+};
+
+var getTracks = function( id ) {
+  return new Promise( ( resolve, reject ) => {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( 'POST', '/query', true );
+    xmlHttp.setRequestHeader( 'Content-Type', 'application/json;charset=UTF-8' );
+    xmlHttp.onreadystatechange = function() {
+      if ( xmlHttp.readyState == 4 && xmlHttp.status == 200 ) {
+        var results = JSON.parse( xmlHttp.response );
+        searchData.track = results.items;
+        resolve( results );
+      }
+    };
+
+    var data = {
+      id: id,
+      path: 'albums',
+      append: 'tracks',
+      qs: { country: 'US' }
+    };
+
+    xmlHttp.send( JSON.stringify( data ) );
+  } );
+};
+
+var getTrackFeatures = function( id ) {
+  return new Promise( ( resolve, reject ) => {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( 'POST', '/query', true );
+    xmlHttp.setRequestHeader( 'Content-Type', 'application/json;charset=UTF-8' );
+    xmlHttp.onreadystatechange = function() {
+      if ( xmlHttp.readyState == 4 && xmlHttp.status == 200 ) {
+        var results = JSON.parse( xmlHttp.response );
+        resolve( results );
+      }
+    };
+
+    var data = {
+      id: id,
+      path: 'audio-features',
+    };
+
+    xmlHttp.send( JSON.stringify( data ) );
+  } );
+}
+
+var getTrackAnalysis = function( id ) {
+  return new Promise( ( resolve, reject ) => {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( 'POST', '/query', true );
+    xmlHttp.setRequestHeader( 'Content-Type', 'application/json;charset=UTF-8' );
+    xmlHttp.onreadystatechange = function() {
+      if ( xmlHttp.readyState == 4 && xmlHttp.status == 200 ) {
+        var results = JSON.parse( xmlHttp.response );
+        resolve( results );
+      }
+    };
+
+    var data = {
+      id: id,
+      path: 'audio-analysis',
+    };
+
+    xmlHttp.send( JSON.stringify( data ) );
+  } );
+}
+
+var search = function( term ) {
+  if ( token && token.length > 0 ) {
+    return new Promise( ( resolve, reject ) => {
+      var xmlHttp = new XMLHttpRequest();
+      xmlHttp.open( 'POST', '/search', true );
+      xmlHttp.setRequestHeader( 'Content-Type', 'application/json;charset=UTF-8' );
+      xmlHttp.onreadystatechange = function() {
+        if ( xmlHttp.readyState == 4 && xmlHttp.status == 200 ) {
+          var results = JSON.parse( xmlHttp.response );
+
+          if ( results.artists.items[ 0 ] ) {
+            searchData.artist = results.artists.items;
+            resolve( results.artists );
+          }
+        }
+      };
+
+      var data = { name: term };
+
+      xmlHttp.send( JSON.stringify( data ) );
+    } );
   }
   else {
     initialize( term );
@@ -510,31 +315,32 @@ var getCurrentState = function() {
 mainInput.addEventListener( 'keyup', function() {
   var input = mainInput.value;
   if ( input.length > 2 ) {
-    search( input )
+    search( input ).
+    then(
+      function( results ) {
+        displayResults( results, 'artist' );
+      }
+    );
   }
 } );
 
 document.addEventListener( 'click', function( e ) {
-  if ( e.target && e.target.classList.value.includes( 'follower_text' ) ) {
-    search( e.target.textContent );
-  }
-  else if ( e.target && e.target.parentElement.classList.value.includes( 'follower_text' ) ) {
-    search( e.target.parentElement.textContent );
-  }
-  else if ( e.target && e.target.classList.value.includes( 'track_text' ) ) {
-    generateNowPlaying( e.target );
-  }
-  else if ( e.target && e.target.classList.value.includes( 'album_container' ) ) {
-    flip( e.target );
-  }
-  else if ( e.target && e.target.classList.value.includes( 'artist' ) ) {
-    albumTransition( e.target );
-  }
+  // if ( e.target && e.target.classList.length > 0 ) {
+    if ( e.target && e.target.parentElement.classList.value.includes( 'artist' ) ) {
+      transition( e.target.parentElement, 'artist' );
+    }
+    else if ( e.target && e.target.parentElement.classList.value.includes( 'album' ) ) {
+      transition( e.target.parentElement, 'album' );
+    }
+    else if ( e.target && e.target.parentElement.classList.value.includes( 'track' ) ) {
+      transition( e.target.parentElement, 'track' );
+    }
+  // }
 } );
 
-window.addEventListener( 'resize', function() {
-  resize();
-} );
+// window.addEventListener( 'resize', function() {
+//   resize();
+// } );
 
 // ================================
 //         player controls
@@ -655,3 +461,96 @@ if ( window.location.hash ) {
 }
 
 initialize();
+
+// ===========
+//     p5
+// ===========
+
+var createVisualizer = function( p ) {
+  var cols, rows;
+  var scl = 40;
+  var w = 2000;
+  var h = 1400;
+
+  var flying = 0;
+  var terrain = [];
+
+  p.setup = function() {
+    p.createCanvas( 600, 600, p.WEBGL );
+    cols = w / scl;
+    rows = h / scl;
+
+    for ( var i = 0; i < cols; i++ ) {
+      terrain[i] = [];
+      for ( var j = 0; j < rows; j++ ) {
+        terrain[i][j] = [];
+      }
+    }
+
+    p.frameRate( 20 );
+  }
+
+  p.draw = function() {
+    p.background( 0 );
+    p.stroke( 255 );
+    p.noFill();
+
+    var rotateXOffset = 2.75;
+
+    p.translate( p.width / 2, p.height / 2 + 100 );
+    p.rotateX( p.PI / rotateXOffset );
+    // flying -= 0.07;
+    flying = 0
+    p.translate( -w / 2, -h / 2 );
+
+    var yoff = flying;
+
+    for ( var y = 0; y < rows; y++ ) {
+      var xoff = 0;
+
+      for ( var x = 0; x < cols; x++ ) {
+        terrain[ x ][ y ] = p.map( p.noise( xoff, yoff ), 0, 1, -150, 150 );
+        xoff += 0.1;
+      }
+
+      yoff += 0.1;
+    }
+
+    for ( var y = 0; y < rows - 1; y = y + 1 ) {
+      p.beginShape( p.TRIANGLE_STRIP );
+      for ( var x = 0; x < cols; x = x + 1 ) {
+        p.vertex( x * scl, y * scl, terrain[ x ][ y ] );
+        p.vertex( x * scl, ( y + 1 ) * scl, terrain[ x ][ y + 1 ] );
+        // p.vertex( ( x + 2 ) * scl, y * scl, terrain[ x ][ y ] );
+      }
+      p.endShape( );
+    }
+  }
+};
+
+// var myp5 = new p5( createVisualizer, 'visualizer-container' );
+
+
+var test = function( p ) {
+  p.setup = function() {
+    p.createCanvas(500, 500, p.WEBGL);
+    p.ortho(-p.width, p.width, p.height, -p.height/2, 0.1, 100);
+    p.background( 0)
+  }
+
+  p.draw = function() {
+    p.box(30);
+    p.fill( 20)
+    p.translate( 100,100,-100 );
+    p.rotate( p.PI/4, [1,1,0]);
+    p.box(30);
+  }
+};
+
+var myp5 = new p5( test, 'visualizer-container' );
+// 0, 0, t
+// 0, 40, t
+// 40, 40, t
+// 40, 80, t
+// 80, 80, t
+// 80, 120, t
