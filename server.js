@@ -262,7 +262,8 @@ app.get( '/authorize', function( request, response ) {
   var authCode;
   var state = generateRandomString( 16 );
   response.cookie( stateKey, state );
-  var scope = [ "user-read-currently-playing", "streaming", "user-read-playback-state", "user-read-birthdate", "user-read-email", "user-read-private", "user-modify-playback-state" ];
+  var scope = ["streaming", "user-read-birthdate", "user-read-email", "user-read-private"];
+  // var scope = [ "user-read-currently-playing", "streaming", "user-read-playback-state", "user-read-birthdate", "user-read-email", "user-read-private", "user-modify-playback-state" ];
 
   response.redirect( "https://accounts.spotify.com/authorize?" +
     querystring.stringify( {

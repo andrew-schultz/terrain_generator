@@ -7,12 +7,12 @@
 // var audioPlayer = document.getElementById( 'audioPlayer' );
 // var audioCtx = new ( window.AudioContext || window.webkitAudioContext )();
 // var analyser = audioCtx.createAnalyser();
-// var source = audioCtx.createMediaElementSource( audioPlayer );
+// var source = audioCtx.createMediaElementSource( localPlayerInstance );
 // source.connect(analyser);
 // source.connect( audioCtx.destination );
 
 // var frequencyData = new Uint8Array( analyser.frequencyBinCount );
-
+// console.log( frequencyData );
 // function renderFrame() {
 //    requestAnimationFrame( renderFrame );
 //    // update data in frequencyData
@@ -34,11 +34,16 @@ var inHeight = window.innerHeight;
 
 var token;
 var authToken;
+var localPlayerInstance;
 
 var deviceId;
 
 var trackData = {};
 var searchData = {};
+
+var selectedSong = {
+  selected: false
+};
 
 // ================================
 //            functions
@@ -118,7 +123,13 @@ var transition = function( div, type ) {
         trackData.features = results[ 0 ];
         trackData.analysis = results[ 1 ];
         trackData.track = filterData( div.dataset.id, 'track' );
-        debugger
+
+        play( {
+          playerInstance: localPlayerInstance,
+          spotify_uri: trackData.track.uri,
+        } );
+
+        var myp5 = new p5( createTerrainVisualizer, 'visualizer-container' );
         // var myp5 = new p5( createVisualizer, 'visualizer-container' );
       }
     )
@@ -338,56 +349,64 @@ document.addEventListener( 'click', function( e ) {
   // }
 } );
 
-// window.addEventListener( 'resize', function() {
-//   resize();
-// } );
+window.addEventListener( 'resize', function() {
+  resize();
+} );
 
 // ================================
 //         player controls
 // ================================
 
-// const play = (
-//   {
-//     spotify_uri,
-//     playerInstance: {
-//       _options: {
-//         getOAuthToken,
-//         id
-//       }
-//     }
-//   }
-// ) => {
-//   // fetch( `https://api.spotify.com/v1/me/player/play?device_id=${id}`, {
-//   //   method: 'PUT',
-//   //   body: JSON.stringify( { uris: [ spotify_uri ] } ),
-//   //   headers: {
-//   //     'Content-Type': 'application/json',
-//   //     'Authorization': `Bearer ${authToken}`
-//   //   },
-//   // } );
+var togglePlay = function() {
+  localPlayerInstance.togglePlay().then(() => {
+    console.log('Toggled playback!');
+  });
+};
 
-//   var xmlHttp = new XMLHttpRequest();
-//   xmlHttp.open( 'POST', '/connect', true );
-//   xmlHttp.setRequestHeader( 'Content-Type', 'application/json;charset=UTF-8' );
-//   xmlHttp.onreadystatechange = function() {
-//     if ( xmlHttp.readyState == 4 && xmlHttp.status == 200 ) {
-//       var results = JSON.parse( xmlHttp.response );
-//       console.log( results );
-//       // debugger
-//       // generateNowPlayingStats( results );
-//     }
-//   };
+const play = (
+  {
+    spotify_uri,
+    playerInstance: {
+      _options: {
+        getOAuthToken,
+        id
+      }
+    }
+  }
+) => {
+  getOAuthToken( access_token => {
+    fetch( `https://api.spotify.com/v1/me/player/play?device_id=${id}`, {
+      method: 'PUT',
+      body: JSON.stringify( { uris: [ spotify_uri ] } ),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+    } );
+  } );
 
-//   var data = {
-//     path: 'play',
-//     method: 'PUT',
-//     token: authToken,
-//     qs: { device_id: id },
-//     body: { uris: [ spotify_uri ] }
-//   };
+  // var xmlHttp = new XMLHttpRequest();
+  // xmlHttp.open( 'POST', '/connect', true );
+  // xmlHttp.setRequestHeader( 'Content-Type', 'application/json;charset=UTF-8' );
+  // xmlHttp.onreadystatechange = function() {
+  //   if ( xmlHttp.readyState == 4 && xmlHttp.status == 200 ) {
+  //     var results = JSON.parse( xmlHttp.response );
+  //     console.log( results );
+  //     // debugger
+  //     // generateNowPlayingStats( results );
+  //   }
+  // };
 
-//   xmlHttp.send( JSON.stringify( data ) );
-// };
+  // var data = {
+  //   path: 'play',
+  //   method: 'PUT',
+  //   token: authToken,
+  //   qs: { device_id: id },
+  //   body: { uris: [ spotify_uri ] }
+  // };
+
+  // xmlHttp.send( JSON.stringify( data ) );
+};
 
 // ================================
 //            initialize
@@ -402,6 +421,7 @@ window.onSpotifyWebPlaybackSDKReady = () => {
     }
   });
 
+  localPlayerInstance = player;
   // Error handling
   player.addListener( 'initialization_error', ( { message } ) => { console.error( message); } );
   player.addListener( 'authentication_error', ( { message } ) => { console.error( message); } );
@@ -418,7 +438,13 @@ window.onSpotifyWebPlaybackSDKReady = () => {
   } );
 
   // Connect to the player!
-  player.connect();
+  player.connect().then(
+    function( success ) {
+      if ( success ){
+        console.log( 'The Web Playback SDK successfully connected to Spotify!' );
+      }
+    }
+  );
 };
 
 var initialize = function( query ) {
@@ -466,7 +492,7 @@ initialize();
 //     p5
 // ===========
 
-var createVisualizer = function( p ) {
+var createTerrainVisualizer = function( p ) {
   var cols, rows;
   var scl = 40;
   var w = 2000;
@@ -499,8 +525,8 @@ var createVisualizer = function( p ) {
 
     p.translate( p.width / 2, p.height / 2 + 100 );
     p.rotateX( p.PI / rotateXOffset );
-    // flying -= 0.07;
-    flying = 0
+    flying -= 0.07;
+    // flying = 0
     p.translate( -w / 2, -h / 2 );
 
     var yoff = flying;
@@ -528,29 +554,107 @@ var createVisualizer = function( p ) {
   }
 };
 
-// var myp5 = new p5( createVisualizer, 'visualizer-container' );
+var createVisualizer = function( p ) {
+  const runTime = trackData.features.duration_ms;
+  const sections = trackData.analysis.sections;
+  // each section has a duration and start
+  //
+  debugger
 
-
-var test = function( p ) {
   p.setup = function() {
-    p.createCanvas(500, 500, p.WEBGL);
-    p.ortho(-p.width, p.width, p.height, -p.height/2, 0.1, 100);
-    p.background( 0)
-  }
+
+  };
 
   p.draw = function() {
-    p.box(30);
-    p.fill( 20)
-    p.translate( 100,100,-100 );
-    p.rotate( p.PI/4, [1,1,0]);
-    p.box(30);
-  }
+
+  };
 };
 
-var myp5 = new p5( test, 'visualizer-container' );
-// 0, 0, t
-// 0, 40, t
-// 40, 40, t
-// 40, 80, t
-// 80, 80, t
-// 80, 120, t
+// // var myp5 = new p5( createVisualizer, 'visualizer-container' );
+
+// let angle = 0;
+// var song;
+// var FFT;
+// var button;
+// var amplitude;
+
+// var spectrumHistory = [];
+
+// var xspacing = 16;    // Distance between each horizontal location
+// var w;                // Width of entire wave
+// var theta = 0.0;      // Start angle at 0
+// var waveHeight = 75.0; // Height of wave
+// var period = 500.0;   // How many pixels before the wave repeats
+// var dx;               // Value for incrementing x
+// var yvalues;  // Using an array to store height values for the wave
+// var level;
+
+// function toggleSong()  {
+//   if ( song.isPlaying() ) {
+//     song.pause();
+//   }
+//   else {
+//     song.play();
+//   }
+// }
+
+// function preload() {
+//   song = loadSound( 'audio/jack_straw.ogg' );
+// }
+
+// function setup() {
+//   createCanvas( 700, 350 );
+//   w = width + 16;
+//   dx = ( TWO_PI / period ) * xspacing;
+//   yvalues = new Array( floor( w / xspacing ) );
+//   colorMode( HSB );
+
+//   fft = new p5.FFT( 0.9, 16 );
+
+//   button = createButton( 'toggle' );
+//   button.mousePressed( toggleSong );
+// }
+
+// function draw() {
+//   background( 0 );
+//   var spectrum = fft.waveform(32);
+
+//   spectrumHistory.push( spectrum );
+
+//   noFill();
+//   stroke( 255 );
+
+//   beginShape();
+//   for ( var i = 0; i < spectrumHistory.length; i++ ) {
+//     var color = map( spectrumHistory[ i ][ 0 ], 0, 1, 255, 10 );
+//     stroke( color, 100, 150 );
+//     var y = map( spectrumHistory[ i ][ 0 ], 0, 1, height / 2, 0);
+//     vertex( i, y );
+//   }
+//   endShape();
+
+//   if( spectrumHistory.length > width ) {
+//     spectrumHistory.splice( 0, 1);
+//   }
+// }
+
+// function calcWave() {
+//   theta += 0.02;
+
+//   var x = theta;
+//   for ( var i = 0; i < yvalues.length; i++ ) {
+//     yvalues[ i ] = sin( x ) * waveHeight;
+//     x += dx;
+//   }
+// }
+
+// function renderWave() {
+//   push();
+//   fill( 200, 100, 150 );
+//   noStroke();
+//   for ( var x = 0; x < yvalues.length; x++ ) {
+//     ellipse( x * xspacing, height / 2 + yvalues[ x ], 16, 16 );
+//   }
+//   pop();
+// }
+

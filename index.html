@@ -5,6 +5,8 @@
     <link href='https://fonts.googleapis.com/css?family=Lato:400,300,100' rel='stylesheet' type='text/css'>
     <script src="processing.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.0/p5.js"></script>
+    <script language="javascript" type="text/javascript" src="p5.sound.js"></script>
+    <script language="javascript" type="text/javascript" src="p5.dom.js"></script>
   </head>
   <body>
 
@@ -67,23 +69,26 @@
     <div id="albums">
       <h2 id="albumT"></h2>
     </div> -->
+    <a href="/authorize" id="loginButton" class="btn btn-primary">Log in with Spotify</a>
 
     <div id="head">
       <p>Type in an artists name</p>
       <input type="text" id="search"></input>
     </div>
 
-    <div id="main-container" class="main-container">
+    <div onclick="togglePlay()" id="play"></div>
+
+    <div id="main-container">
       <div id="info"></div>
-      <div id="artist-container" class="main-container"></div>
-      <div id="album-container" class="main-container"></div>
-      <div id="track-container" class="main-container"></div>
+      <div id="artist-container" class="main-container large"></div>
+      <div id="album-container" class="main-container large"></div>
+      <div id="track-container" class="main-container large"></div>
       <div id="visualizer-container">
         <!-- <canvas id="visualizerCanvas"></canvas> -->
       </div>
     </div>
 
-    <!-- <script src="https://sdk.scdn.co/spotify-player.js"></script> -->
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
     <script src="javascripts/application.js"></script>
   </body>
 </html>
