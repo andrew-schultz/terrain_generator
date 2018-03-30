@@ -98,8 +98,8 @@ body {
 }
 
 #visualizer-container {
-  width: 600px;
-  height: 600px;
+  width: 700px;
+  height: 350px;
   border: 1px solid #000000;
   margin: 0 auto;
 }

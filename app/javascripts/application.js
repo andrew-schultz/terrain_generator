@@ -129,8 +129,8 @@ var transition = function( div, type ) {
           spotify_uri: trackData.track.uri,
         } );
 
-        var myp5 = new p5( createTerrainVisualizer, 'visualizer-container' );
-        // var myp5 = new p5( createVisualizer, 'visualizer-container' );
+        // var myp5 = new p5( createTerrainVisualizer, 'visualizer-container' );
+        var myp5 = new p5( createVisualizer, 'visualizer-container' );
       }
     )
   }
@@ -305,8 +305,7 @@ var getCurrentState = function() {
   xmlHttp.onreadystatechange = function() {
     if ( xmlHttp.readyState == 4 && xmlHttp.status == 200 ) {
       // var results = JSON.parse( xmlHttp.response );
-      debugger
-      // generateNowPlayingStats( results );
+      generateNowPlayingStats( results );
     }
   };
 
@@ -555,22 +554,107 @@ var createTerrainVisualizer = function( p ) {
 };
 
 var createVisualizer = function( p ) {
-  const runTime = trackData.features.duration_ms;
-  const sections = trackData.analysis.sections;
+  // const runTime = trackData.features.duration_ms;
+  // const sections = trackData.analysis.sections;
   // each section has a duration and start
   //
-  debugger
+
+
+  let angle = 0;
+  var song;
+  var FFT;
+  var button;
+  var amplitude;
+
+  var spectrumHistory = [];
+  // var displayHistory = [];
+  var currentDisplay = 0;
+
+  var xspacing = 16;    // Distance between each horizontal location
+  var w;                // Width of entire wave
+  var theta = 0.0;      // Start angle at 0
+  var waveHeight = 75.0; // Height of wave
+  var period = 500.0;   // How many pixels before the wave repeats
+  var dx;               // Value for incrementing x
+  var yvalues;  // Using an array to store height values for the wave
+  var level;
+
+  p.preload = function() {
+    debugger
+  };
 
   p.setup = function() {
+    p.createCanvas( 700, 350 );
+    w = p.width + 16;
+    dx = ( p.TWO_PI / period ) * xspacing;
+    yvalues = new Array( p.floor( w / xspacing ) );
+    p.colorMode( p.HSB );
+    fft = new p5.FFT( 0.9, 16 );
 
   };
+
+// set a variable to track height / loudness_max for smooth transitions
 
   p.draw = function() {
 
-  };
+    p.background( 0 );
+    var spectrum = fft.waveform(32);
+    spectrumHistory.push( spectrum );
+
+    p.noFill();
+    p.stroke( 255 );
+
+    p.beginShape();
+    for ( var i = 0; i < spectrumHistory.length; i++ ) {
+      var color = p.map( spectrumHistory[ i ][ 0 ], 0, 1, 255, 10 );
+      p.stroke( color, 100, 150 );
+      var y = p.map( spectrumHistory[ i ][ 0 ], 0, 1, p.height / 2, 0);
+      p.vertex( i, y );
+    }
+    p.endShape();
+
+    if( spectrumHistory.length > p.width ) {
+      spectrumHistory.splice( 0, 1);
+    }
+
+
+    // var displayHistory = [];
+    // var totalLength = 0;
+    // p.background( 0 );
+
+    // // p.noFill();
+    // // p.stroke( 255 );
+
+    // var counter = 0;
+    //   p.beginShape();
+    //   setInterval(
+    //     function() {
+    //       var i = counter;
+    //       displayHistory.push( spectrumHistory[ i ].loudness_max );
+    //       // var color = p.map( displayHistory[ i ], 0, 1, 255, 10 );
+    //       // p.stroke( color, 100, 150 );
+    //       p.stroke = ( 255 );
+    //       var y = p.map( displayHistory[ i ] * 0.001, 0, 1, p.height / 2, 0);
+    //       console.log( y );
+
+    //       // p.vertex( i, y );
+
+    //       p.vertex( i, 100 );
+    //       console.log( "duration",  spectrumHistory[ i ].duration * 10000 )
+    //       counter++
+    //       // totalLength += displayHistory[ i ];
+    //     },
+    //     spectrumHistory[ counter ].duration * 10000
+    //   );
+    //   p.endShape();
+
+    // if( totalLength > p.width ) {
+    //   spectrumHistory.splice( 0, 1);
+    // }
+  }
 };
 
-// // var myp5 = new p5( createVisualizer, 'visualizer-container' );
+// var myp5 = new p5( createVisualizer, 'visualizer-container' );
 
 // let angle = 0;
 // var song;
