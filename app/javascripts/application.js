@@ -292,12 +292,12 @@ var getCurrentState = function() {
 };
 
 var getTopList = function() {
-  // debugger
+
   return new Promise( ( resolve, reject ) => {
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.open( 'GET', 'https://api.spotify.com/v1/me/top/artists', true );
     xmlHttp.setRequestHeader( 'Accept', 'application/json' );
-    xmlHttp.setRequestHeader( 'Content-Type', 'application/json;charset=UTF-8' );
+    xmlHttp.setRequestHeader( 'Content-Type', 'application/json' );
     xmlHttp.setRequestHeader( 'Authorization', "Bearer " + token )
     xmlHttp.onreadystatechange = function() {
       if ( xmlHttp.readyState == 4 && xmlHttp.status == 200 ) {
@@ -310,11 +310,11 @@ var getTopList = function() {
       }
     };
 
-    var data = {
-      path: 'me/top/artists',
-    };
-// debugger
-    xmlHttp.send();
+    // var data = {
+    //   path: 'me/top/artists',
+    // };
+
+    xmlHttp.send( );
   } );
 };
 
