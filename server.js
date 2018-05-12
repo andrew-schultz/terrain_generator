@@ -114,6 +114,29 @@ var spotifyTokenRequest = function( path, payload, callback ) {
   );
 };
 
+var spotifyMeRequest = function( path, payload, callback ) {
+  var options = {
+    method: 'GET',
+    uri: 'https://api.spotify.com/v1/me/top/artists',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Authorization': "Bearer " + token
+    }
+  };
+
+  requestPromise( options ).
+  then( callback ).
+  catch(
+    function( error ) {
+      console.log( 'its a me error' );
+      console.log( error.message );
+      console.log( error );
+      return error;
+    }
+  );
+};
+
 var spotifyRequest = function( path, payload, callback ) {
   var options = {
     method: 'GET',
@@ -133,7 +156,7 @@ var spotifyRequest = function( path, payload, callback ) {
   catch(
     function( error ) {
       console.log( 'its a query error' );
-      // console.log( error );
+      console.log( error.message );
     }
   );
 };
@@ -245,6 +268,19 @@ app.post( '/search', function( request, response ) {
   )
 } );
 
+// get logged in users top tracks or artists ( both? )
+app.post( '/me', function( request, response ) {
+  response.set( 'Cache-Control', 'no-cache' );
+
+  spotifyMeRequest(
+    request.body.path,
+    {},
+    function( results ) {
+      response.send( results );
+    }
+  );
+} );
+
 // connect api interactions
 app.post( '/connect', function( request, response ) {
   response.set( 'Cache-Control', 'no-cache' );
@@ -262,17 +298,17 @@ app.get( '/authorize', function( request, response ) {
   var authCode;
   var state = generateRandomString( 16 );
   response.cookie( stateKey, state );
-  var scope = ["streaming", "user-read-birthdate", "user-read-email", "user-read-private"];
+
+  // var scope = ["streaming", "user-read-birthdate", "user-read-email", "user-read-private"];
+  var scopes = "streaming user-top-read user-read-birthdate user-read-email user-read-private";
   // var scope = [ "user-read-currently-playing", "streaming", "user-read-playback-state", "user-read-birthdate", "user-read-email", "user-read-private", "user-modify-playback-state" ];
 
-  response.redirect( "https://accounts.spotify.com/authorize?" +
-    querystring.stringify( {
-      response_type: 'code',
-      client_id: CLIENT_ID,
-      scope: scope,
-      redirect_uri: REDIRECT_URI,
-      state: state
-    } )
+  response.redirect( 'https://accounts.spotify.com/authorize?' +
+    'response_type=code' +
+    '&client_id=' + CLIENT_ID +
+    '&scope=' + encodeURIComponent( scopes ) +
+    '&redirect_uri=' + encodeURIComponent( REDIRECT_URI ) +
+    '&state=' + state
   );
 } );
 
@@ -301,7 +337,7 @@ app.get( '/tokencallback', function( request, response ) {
         token = results.access_token;
         authToken = results.access_token;
         refreshToken = results.refresh_token;
-
+console.log( token );
         response.redirect( '/#' + '?' +
           querystring.stringify( {
             access_token: token,
