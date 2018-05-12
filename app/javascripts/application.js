@@ -292,7 +292,6 @@ var getCurrentState = function() {
 };
 
 var getTopList = function() {
-
   return new Promise( ( resolve, reject ) => {
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.open( 'GET', 'https://api.spotify.com/v1/me/top/artists', true );
@@ -302,17 +301,12 @@ var getTopList = function() {
     xmlHttp.onreadystatechange = function() {
       if ( xmlHttp.readyState == 4 && xmlHttp.status == 200 ) {
         var results = JSON.parse( xmlHttp.response );
-        // debugger
         resolve( results );
       }
       else if ( xmlHttp.readyState == 4 && xmlHttp.status != 200 ) {
-        // debugger
+        console.log( 'error' );
       }
     };
-
-    // var data = {
-    //   path: 'me/top/artists',
-    // };
 
     xmlHttp.send( );
   } );
