@@ -297,7 +297,7 @@ var getTopList = function() {
     xmlHttp.open( 'GET', 'https://api.spotify.com/v1/me/top/artists', true );
     xmlHttp.setRequestHeader( 'Accept', 'application/json' );
     xmlHttp.setRequestHeader( 'Content-Type', 'application/json' );
-    xmlHttp.setRequestHeader( 'Authorization', "Bearer " + token )
+    xmlHttp.setRequestHeader( 'Authorization', `Bearer ${authToken}` )
     xmlHttp.onreadystatechange = function() {
       if ( xmlHttp.readyState == 4 && xmlHttp.status == 200 ) {
         var results = JSON.parse( xmlHttp.response );
