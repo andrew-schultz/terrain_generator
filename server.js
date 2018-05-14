@@ -337,7 +337,7 @@ app.get( '/tokencallback', function( request, response ) {
         token = results.access_token;
         authToken = results.access_token;
         refreshToken = results.refresh_token;
-console.log( token );
+
         response.redirect( '/#' + '?' +
           querystring.stringify( {
             access_token: token,

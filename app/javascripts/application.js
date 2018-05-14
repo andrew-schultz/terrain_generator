@@ -2,7 +2,7 @@
 //            variables
 // ================================
 
-var mainInput = document.getElementById( 'search' );
+// var mainInput = document.getElementById( 'search' );
 
 var inHeight = window.innerHeight;
 
@@ -19,6 +19,7 @@ var selectedSong = {
   selected: false
 };
 
+var mainContainer = document.getElementById( 'main-container' );
 var audioPlayer = document.getElementById( 'audioPlayer' );
 
 // ================================
@@ -127,6 +128,98 @@ var buildDiv = function( data, type ) {
   node.appendChild( titleNode );
 
   document.getElementById( `${type}-container` ).appendChild( node );
+};
+
+// ##################
+// TOP STAT FUNCTIONS
+// ##################
+
+var pickImage = function( images ) {
+  var image;
+
+  images.forEach(
+    function( img ) {
+      if ( img.height > 350 && img.height < 450 ) {
+        image = img;
+      }
+    }
+  );
+
+  if ( !image ) {
+    image = images[ 0 ];
+  }
+
+  return image.url;
+};
+
+var fadeIn = function(element) {
+    var op = 0.1;  // initial opacity
+    element.style.display = 'block';
+    var timer = setInterval(function () {
+        if (op >= 1){
+            clearInterval(timer);
+        }
+        element.style.opacity = op;
+        element.style.filter = 'alpha(opacity=' + op * 100 + ")";
+        op += op * 0.1;
+    }, 20);
+};
+
+var buildArtistStatDiv = function( data, index ) {
+  var shell = document.createElement( 'div' );
+  shell.classList.add( 'artist-stat-div' );
+
+  var imgDiv = document.createElement( 'div' );
+  imgDiv.classList.add( 'artist-stat-img-div' );
+
+  var infoDiv = document.createElement( 'div' );
+  infoDiv.classList.add( 'artist-stat-info-div' );
+
+  var img = document.createElement( 'img' );
+  img.classList.add( 'artist-stat-img' );
+  img.src = pickImage( data.images );
+  imgDiv.appendChild( img );
+
+  var rankingDivContainer = document.createElement( 'div' );
+  rankingDivContainer.classList.add( 'ranking-container' );
+
+  var rankingDiv = document.createElement( 'div' );
+  rankingDiv.classList.add( 'ranking-div' );
+
+  var rankingNumber = document.createElement( 'p' );
+  rankingNumber.classList.add( 'ranking-text')
+  rankingNumber.textContent = index + 1;
+
+  rankingDiv.appendChild( rankingNumber );
+  rankingDivContainer.appendChild( rankingDiv );
+  infoDiv.appendChild( rankingDivContainer );
+
+  var titleNode = document.createElement( 'h2' );
+  titleNode.classList.add( 'artist-stat-title' )
+  titleNode.textContent = data.name;
+  infoDiv.appendChild( titleNode );
+
+  shell.appendChild( imgDiv );
+  shell.appendChild( infoDiv );
+
+  mainContainer.appendChild( shell );
+
+  return shell;
+};
+
+var queryStats = function() {
+  getTopList().then(
+    function( results ) {
+      var first = true;
+
+      results.items.forEach(
+        function( result, index ) {
+          var newDiv = buildArtistStatDiv( result, index );
+          fadeIn( newDiv );
+        }
+      );
+    }
+  );
 };
 
 // ===========
@@ -316,35 +409,35 @@ var getTopList = function() {
 //            listeners
 // ================================
 
-mainInput.addEventListener( 'keyup', function() {
-  var input = mainInput.value;
-  if ( input.length > 2 ) {
-    search( input ).
-    then(
-      function( results ) {
-        displayResults( results, 'artist' );
-      }
-    );
-  }
-} );
+// mainInput.addEventListener( 'keyup', function() {
+//   var input = mainInput.value;
+//   if ( input.length > 2 ) {
+//     search( input ).
+//     then(
+//       function( results ) {
+//         displayResults( results, 'artist' );
+//       }
+//     );
+//   }
+// } );
 
-document.addEventListener( 'click', function( e ) {
-  // if ( e.target && e.target.classList.length > 0 ) {
-    if ( e.target && e.target.parentElement.classList.value.includes( 'artist' ) ) {
-      transition( e.target.parentElement, 'artist' );
-    }
-    else if ( e.target && e.target.parentElement.classList.value.includes( 'album' ) ) {
-      transition( e.target.parentElement, 'album' );
-    }
-    else if ( e.target && e.target.parentElement.classList.value.includes( 'track' ) ) {
-      transition( e.target.parentElement, 'track' );
-    }
-  // }
-} );
+// document.addEventListener( 'click', function( e ) {
+//   // if ( e.target && e.target.classList.length > 0 ) {
+//     if ( e.target && e.target.parentElement.classList.value.includes( 'artist' ) ) {
+//       transition( e.target.parentElement, 'artist' );
+//     }
+//     else if ( e.target && e.target.parentElement.classList.value.includes( 'album' ) ) {
+//       transition( e.target.parentElement, 'album' );
+//     }
+//     else if ( e.target && e.target.parentElement.classList.value.includes( 'track' ) ) {
+//       transition( e.target.parentElement, 'track' );
+//     }
+//   // }
+// } );
 
-window.addEventListener( 'resize', function() {
-  resize();
-} );
+// window.addEventListener( 'resize', function() {
+//   resize();
+// } );
 
 // ================================
 //         player controls
@@ -377,29 +470,63 @@ const play = (
       },
     } );
   } );
-
-  // var xmlHttp = new XMLHttpRequest();
-  // xmlHttp.open( 'POST', '/connect', true );
-  // xmlHttp.setRequestHeader( 'Content-Type', 'application/json;charset=UTF-8' );
-  // xmlHttp.onreadystatechange = function() {
-  //   if ( xmlHttp.readyState == 4 && xmlHttp.status == 200 ) {
-  //     var results = JSON.parse( xmlHttp.response );
-  //     console.log( results );
-  //     // debugger
-  //     // generateNowPlayingStats( results );
-  //   }
-  // };
-
-  // var data = {
-  //   path: 'play',
-  //   method: 'PUT',
-  //   token: authToken,
-  //   qs: { device_id: id },
-  //   body: { uris: [ spotify_uri ] }
-  // };
-
-  // xmlHttp.send( JSON.stringify( data ) );
 };
+
+// ================================
+//            ImgBaseColor
+// ================================
+
+// var rgb = getAverageRGB(document.getElementById('i'));
+//     document.body.style.backgroundColor = 'rgb('+rgb.r+','+rgb.g+','+rgb.b+')';
+
+// function getAverageRGB(imgEl) {
+
+//     var blockSize = 5, // only visit every 5 pixels
+//         defaultRGB = {r:0,g:0,b:0}, // for non-supporting envs
+//         canvas = document.createElement('canvas'),
+//         context = canvas.getContext && canvas.getContext('2d'),
+//         data, width, height,
+//         i = -4,
+//         length,
+//         rgb = {r:0,g:0,b:0},
+//         count = 0;
+
+//     if (!context) {
+//         return defaultRGB;
+//     }
+
+//     height = canvas.height = imgEl.naturalHeight || imgEl.offsetHeight || imgEl.height;
+//     width = canvas.width = imgEl.naturalWidth || imgEl.offsetWidth || imgEl.width;
+
+//     context.drawImage(imgEl, 0, 0);
+
+//     try {
+//         data = context.getImageData(0, 0, width, height);
+//     } catch(e) {
+//         /* security error, img on diff domain */alert('x');
+//         return defaultRGB;
+//     }
+
+//     length = data.data.length;
+
+//     while ( (i += blockSize * 4) < length ) {
+//         ++count;
+//         rgb.r += data.data[i];
+//         rgb.g += data.data[i+1];
+//         rgb.b += data.data[i+2];
+//     }
+
+//     // ~~ used to floor values
+//     rgb.r = ~~(rgb.r/count);
+//     rgb.g = ~~(rgb.g/count);
+//     rgb.b = ~~(rgb.b/count);
+
+//     return rgb;
+
+// // Found a great workaround for cross-origin restrictions:
+// // just add img.crossOrigin = ''; before setting the src attribute.
+// };
+
 
 // ================================
 //            initialize
@@ -475,7 +602,10 @@ if ( window.location.hash ) {
 
   if ( params.access_token ) {
     authToken = params.access_token;
+    document.getElementById( 'login-container' ).style.display = 'none';
     document.getElementById( 'loginButton' ).style.display = 'none';
+
+    queryStats();
   }
 }
 

@@ -9,92 +9,14 @@
     <script language="javascript" type="text/javascript" src="p5.dom.js"></script>
   </head>
   <body>
-
-    <!-- <div class="main"> -->
- <!--      <h3 id="mainHeader"></h3>
-      <audio id="audioPlayer" controls>
-
-        <source src="audio/jack_straw.ogg" type="audio/mpeg">
-      </audio> -->
-<!--       <div id="processingContainer">
-        <canvas data-processing-sources="/processing/terrain_generator/terrain_generator.pde"></canvas>
-      </div> -->
-    <!-- </div> -->
-
-    <!-- band browser template -->
- <!--    <div id="topPlayer">
-      <p id="topPlayerTitle">Now Playing</p>
+    <div id="login-container">
+      <a href="/authorize" id="loginButton" class="btn btn-primary">Log in with Spotify</a>
     </div>
 
-    <div id="head">
-      <h1 id="title">Band Browser</h1>
-      <p>Type in an artists name</p>
-      <input type="text" id="search"></input>
-      <a href="/authorize" id = "loginButton" class="btn btn-primary">Log in with Spotify</a>
-    </div>
+<!--
+    <div onclick="togglePlay()" id="play"></div> -->
 
-    <div id="band_info">
-      <h1 id="name"></h1>
-      <div id="image"></div>
-    </div>
-
-    <div id="left">
-      <div id="genre_div">
-        <h3 id="g_title"></h3>
-        <ul id="genres"></ul>
-      </div>
-
-      <h3 id="followers"></h3>
-      <h3 id="popularity"></h3>
-
-      <div id="top_tracks">
-        <h3 id="tt_title"></h3>
-        <h5 id="tt_subtitle"></h5>
-        <ul id="tracks"></ul>
-      </div>
-
-      <div id="nowPlaying">
-        <h2 id="npTitle"></h2>
-        <div id="play"></div>
-      </div>
-    </div>
-
-    <div id="right">
-      <div id="related_artists">
-        <h3 id="ra_title"></h3>
-        <ul id="ra"></ul>
-      </div>
-    </div>
-
-    <div id="albums">
-      <h2 id="albumT"></h2>
-    </div> -->
-    <a href="/authorize" id="loginButton" class="btn btn-primary">Log in with Spotify</a>
-
-    <div id="head">
-      <p>Type in an artists name</p>
-      <input type="text" id="search"></input>
-    </div>
-
-    <div onclick="togglePlay()" id="play"></div>
-
-    <div onclick="getTopList()" id="topList">
-      <!-- <p>get top list</p> -->
-    </div>
-
-    <div id="main-container">
-      <div id="info"></div>
-      <div id="artist-container" class="main-container large"></div>
-      <div id="album-container" class="main-container large"></div>
-      <div id="track-container" class="main-container large"></div>
-      <div id="visualizer-container">
-        <canvas id="visualizerCanvas"></canvas>
-      </div>
-<!--       <audio id="audioPlayer" controls autoplay>
-
-        <source src="audio/jack_straw.ogg" type="audio/mpeg">
-      </audio> -->
-    </div>
+    <div id="main-container"></div>
 
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
     <script src="javascripts/application.js"></script>
