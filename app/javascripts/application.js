@@ -648,11 +648,19 @@ if ( window.location.hash ) {
 
   if ( params.access_token ) {
     authToken = params.access_token;
-    document.getElementById( 'login-container' ).style.display = 'none';
+    document.getElementById( 'login-button-container' ).style.display = 'none';
     document.getElementById( 'loginButton' ).style.display = 'none';
+
+    artistListButton.style.display = 'block';
+    trackListButton.style.display = 'block';
 
     queryStats( 'artists' );
   }
+}
+else {
+
+  artistListButton.style.display = 'none';
+  trackListButton.style.display = 'none';
 }
 
 initialize();

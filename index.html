@@ -9,12 +9,15 @@
     <script language="javascript" type="text/javascript" src="p5.dom.js"></script>
   </head>
   <body>
-    <div id="login-container">
-      <a href="/authorize" id="loginButton" class="btn btn-primary">Log in with Spotify</a>
-    </div>
 
 <!--
     <div onclick="togglePlay()" id="play"></div> -->
+    <div class="login-button-container" id="login-button-container">
+      <div id="login-container">
+        <a href="/authorize" id="loginButton" class="btn btn-primary">Log in with Spotify</a>
+      </div>
+    </div>
+
     <div class="button-container">
       <div class="list-button inactive" id="artist-list-button" onclick="queryStats( 'artists' )">
         <p>Top Artists</p>
