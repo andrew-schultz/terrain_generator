@@ -22,6 +22,11 @@ var selectedSong = {
 var mainContainer = document.getElementById( 'main-container' );
 var audioPlayer = document.getElementById( 'audioPlayer' );
 
+var artistListButton = document.getElementById( 'artist-list-button' );
+var trackListButton = document.getElementById( 'track-list-button' );
+
+var activeList;
+
 // ================================
 //            functions
 // ================================
@@ -42,6 +47,63 @@ var resize = function() {
     document.getElementById( 'right' ).style.height = window.innerHeight + "px";
   }
 };
+
+// ================================
+//            ImgBaseColor
+// ================================
+
+// var rgb = getAverageRGB(document.getElementById('i'));
+//     document.body.style.backgroundColor = 'rgb('+rgb.r+','+rgb.g+','+rgb.b+')';
+
+var getAverageRGB = function( imgEl ) {
+
+    var blockSize = 5, // only visit every 5 pixels
+        defaultRGB = { r:0, g:0, b:0 }, // for non-supporting envs
+        canvas = document.createElement('canvas'),
+        context = canvas.getContext && canvas.getContext('2d'),
+        data, width, height,
+        i = -4,
+        length,
+        rgb = { r:0, g:0, b:0 },
+        count = 0;
+
+    if (!context) {
+      return defaultRGB;
+    }
+
+    height = canvas.height = imgEl.naturalHeight || imgEl.offsetHeight || imgEl.height || 300;
+    width = canvas.width = imgEl.naturalWidth || imgEl.offsetWidth || imgEl.width || 300;
+
+    context.drawImage(imgEl, 0, 0);
+
+    try {
+        data = context.getImageData(0, 0, width, height);
+    } catch(e) {
+        /* security error, img on diff domain */
+        // alert('x');
+        return defaultRGB;
+    }
+
+    length = data.data.length;
+
+    while ( (i += blockSize * 4) < length ) {
+        ++count;
+        rgb.r += data.data[i];
+        rgb.g += data.data[i+1];
+        rgb.b += data.data[i+2];
+    }
+
+    // ~~ used to floor values
+    rgb.r = ~~(rgb.r/count);
+    rgb.g = ~~(rgb.g/count);
+    rgb.b = ~~(rgb.b/count);
+
+    return rgb;
+
+// // Found a great workaround for cross-origin restrictions:
+// // just add img.crossOrigin = ''; before setting the src attribute.
+};
+
 
 // ================
 // Generation
@@ -173,12 +235,32 @@ var buildArtistStatDiv = function( data, index ) {
   imgDiv.classList.add( 'artist-stat-img-div' );
 
   var infoDiv = document.createElement( 'div' );
-  infoDiv.classList.add( 'artist-stat-info-div' );
+  if ( data.type == 'track' ) {
+    infoDiv.classList.add( 'track-stat-info-div' );
+  }
+  else if ( data.type == 'artist' ) {
+    infoDiv.classList.add( 'artist-stat-info-div' );
+  }
+
 
   var img = document.createElement( 'img' );
-  img.classList.add( 'artist-stat-img' );
-  img.src = pickImage( data.images );
+  img.crossOrigin = '';
+
+  if ( data.type == 'track' ) {
+    img.classList.add( 'track-stat-img' );
+    img.src = pickImage( data.album.images );
+  }
+  else {
+    img.classList.add( 'artist-stat-img' );
+    img.src = pickImage( data.images );
+  }
+
   imgDiv.appendChild( img );
+
+  img.addEventListener( 'load', function() {
+    var rgb = getAverageRGB( img );
+    shell.style.background = 'linear-gradient( -150deg, rgba( ' + rgb.r + ',' + rgb.g + ',' + rgb.b + ', 0.2 ), rgba( ' + rgb.r + ',' + rgb.g + ',' + rgb.b + ', 0.8 )';
+  } );
 
   var rankingDivContainer = document.createElement( 'div' );
   rankingDivContainer.classList.add( 'ranking-container' );
@@ -199,6 +281,13 @@ var buildArtistStatDiv = function( data, index ) {
   titleNode.textContent = data.name;
   infoDiv.appendChild( titleNode );
 
+  if ( data.type == 'track' ) {
+    var subTitleNode = document.createElement( 'p' );
+    subTitleNode.classList.add( 'track-artist-title' );
+    subTitleNode.textContent = 'by ' + data.artists[ 0 ].name;
+    infoDiv.appendChild( subTitleNode );
+  }
+
   shell.appendChild( imgDiv );
   shell.appendChild( infoDiv );
 
@@ -207,19 +296,32 @@ var buildArtistStatDiv = function( data, index ) {
   return shell;
 };
 
-var queryStats = function() {
-  getTopList().then(
-    function( results ) {
-      var first = true;
+var toggleListButtons = function( term ) {
+  artistListButton.classList.toggle( 'inactive' );
+  trackListButton.classList.toggle( 'inactive' );
+};
 
-      results.items.forEach(
-        function( result, index ) {
-          var newDiv = buildArtistStatDiv( result, index );
-          fadeIn( newDiv );
-        }
-      );
-    }
-  );
+var queryStats = function( term ) {
+  if ( activeList !== term ) {
+    getTopList( term ).then(
+      function( results ) {
+        // remove any existing stat containers
+        while ( mainContainer.hasChildNodes() ) {
+          mainContainer.removeChild( mainContainer.lastChild );
+        };
+
+        activeList = term;
+        toggleListButtons( term );
+
+        results.items.forEach(
+          function( result, index ) {
+            var newDiv = buildArtistStatDiv( result, index );
+            fadeIn( newDiv );
+          }
+        );
+      }
+    );
+  }
 };
 
 // ===========
@@ -384,10 +486,10 @@ var getCurrentState = function() {
   xmlHttp.send( JSON.stringify( data ) );
 };
 
-var getTopList = function() {
+var getTopList = function( type) {
   return new Promise( ( resolve, reject ) => {
     var xmlHttp = new XMLHttpRequest();
-    xmlHttp.open( 'GET', 'https://api.spotify.com/v1/me/top/artists', true );
+    xmlHttp.open( 'GET', 'https://api.spotify.com/v1/me/top/' + type, true );
     xmlHttp.setRequestHeader( 'Accept', 'application/json' );
     xmlHttp.setRequestHeader( 'Content-Type', 'application/json' );
     xmlHttp.setRequestHeader( 'Authorization', `Bearer ${authToken}` )
@@ -473,62 +575,6 @@ const play = (
 };
 
 // ================================
-//            ImgBaseColor
-// ================================
-
-// var rgb = getAverageRGB(document.getElementById('i'));
-//     document.body.style.backgroundColor = 'rgb('+rgb.r+','+rgb.g+','+rgb.b+')';
-
-// function getAverageRGB(imgEl) {
-
-//     var blockSize = 5, // only visit every 5 pixels
-//         defaultRGB = {r:0,g:0,b:0}, // for non-supporting envs
-//         canvas = document.createElement('canvas'),
-//         context = canvas.getContext && canvas.getContext('2d'),
-//         data, width, height,
-//         i = -4,
-//         length,
-//         rgb = {r:0,g:0,b:0},
-//         count = 0;
-
-//     if (!context) {
-//         return defaultRGB;
-//     }
-
-//     height = canvas.height = imgEl.naturalHeight || imgEl.offsetHeight || imgEl.height;
-//     width = canvas.width = imgEl.naturalWidth || imgEl.offsetWidth || imgEl.width;
-
-//     context.drawImage(imgEl, 0, 0);
-
-//     try {
-//         data = context.getImageData(0, 0, width, height);
-//     } catch(e) {
-//         /* security error, img on diff domain */alert('x');
-//         return defaultRGB;
-//     }
-
-//     length = data.data.length;
-
-//     while ( (i += blockSize * 4) < length ) {
-//         ++count;
-//         rgb.r += data.data[i];
-//         rgb.g += data.data[i+1];
-//         rgb.b += data.data[i+2];
-//     }
-
-//     // ~~ used to floor values
-//     rgb.r = ~~(rgb.r/count);
-//     rgb.g = ~~(rgb.g/count);
-//     rgb.b = ~~(rgb.b/count);
-
-//     return rgb;
-
-// // Found a great workaround for cross-origin restrictions:
-// // just add img.crossOrigin = ''; before setting the src attribute.
-// };
-
-
-// ================================
 //            initialize
 // ================================
 
@@ -605,7 +651,7 @@ if ( window.location.hash ) {
     document.getElementById( 'login-container' ).style.display = 'none';
     document.getElementById( 'loginButton' ).style.display = 'none';
 
-    queryStats();
+    queryStats( 'artists' );
   }
 }
 
