@@ -25,7 +25,12 @@ var audioPlayer = document.getElementById( 'audioPlayer' );
 var artistListButton = document.getElementById( 'artist-list-button' );
 var trackListButton = document.getElementById( 'track-list-button' );
 
+var shortTermButton = document.getElementById( 'short-time-button' );
+var mediumTermButton = document.getElementById( 'medium-time-button' );
+var longTermButton = document.getElementById( 'long-time-button' );
+
 var activeList;
+var activeTime = 'medium_term';
 
 // ================================
 //            functions
@@ -301,6 +306,56 @@ var toggleListButtons = function( term ) {
   trackListButton.classList.toggle( 'inactive' );
 };
 
+var toggleTimeButtons = function( time ) {
+  var timeButtons = [
+    'shortTermButton',
+    'mediumTermButton',
+    'longTermButton'
+  ];
+
+  var period = time.split( '_' );
+
+  timeButtons.forEach(
+    function( button ) {
+      var button_split = button.split( /(?=[A-Z])/ );
+      var element = window[ button ];
+
+      if ( button_split[ 0 ] !== period[ 0 ] ) {
+        element.classList.add( 'inactive' );
+      }
+      else {
+        if ( element.classList.contains( 'inactive' ) ) {
+          element.classList.remove( 'inactive' );
+        }
+      }
+    }
+  );
+};
+
+var setTime = function( time ) {
+  if ( activeTime !== time ) {
+    activeTime = time;
+
+    getTopList( activeList ).then(
+      function( results ) {
+        // remove any existing stat containers
+        while ( mainContainer.hasChildNodes() ) {
+          mainContainer.removeChild( mainContainer.lastChild );
+        };
+
+        toggleTimeButtons( time );
+
+        results.items.forEach(
+          function( result, index ) {
+            var newDiv = buildArtistStatDiv( result, index );
+            fadeIn( newDiv );
+          }
+        );
+      }
+    );
+  }
+};
+
 var queryStats = function( term ) {
   if ( activeList !== term ) {
     getTopList( term ).then(
@@ -486,10 +541,12 @@ var getCurrentState = function() {
   xmlHttp.send( JSON.stringify( data ) );
 };
 
-var getTopList = function( type) {
+var getTopList = function( type ) {
   return new Promise( ( resolve, reject ) => {
     var xmlHttp = new XMLHttpRequest();
-    xmlHttp.open( 'GET', 'https://api.spotify.com/v1/me/top/' + type, true );
+    var dateParam = '?time_range=' + encodeURIComponent( activeTime );
+
+    xmlHttp.open( 'GET', 'https://api.spotify.com/v1/me/top/' + type + dateParam, true );
     xmlHttp.setRequestHeader( 'Accept', 'application/json' );
     xmlHttp.setRequestHeader( 'Content-Type', 'application/json' );
     xmlHttp.setRequestHeader( 'Authorization', `Bearer ${authToken}` )

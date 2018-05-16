@@ -122,7 +122,8 @@ var spotifyMeRequest = function( path, payload, callback ) {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
       'Authorization': "Bearer " + token
-    }
+    },
+    qs: { 'time_range': payload.time_period }
   };
 
   requestPromise( options ).
@@ -131,7 +132,6 @@ var spotifyMeRequest = function( path, payload, callback ) {
     function( error ) {
       console.log( 'its a me error' );
       console.log( error.message );
-      console.log( error );
       return error;
     }
   );
@@ -208,7 +208,7 @@ var spotifyConnectRequest = function( payload, callback ) {
   if ( payload.body ) {
     options.body = payload.body
   }
-console.log( options )
+
   requestPromise( options ).
   then( callback ).
   catch(
@@ -274,7 +274,7 @@ app.post( '/me', function( request, response ) {
 
   spotifyMeRequest(
     request.body.path,
-    {},
+    { time_period: request.body.period },
     function( results ) {
       response.send( results );
     }
