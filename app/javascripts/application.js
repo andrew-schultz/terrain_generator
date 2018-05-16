@@ -32,6 +32,8 @@ var longTermButton = document.getElementById( 'long-time-button' );
 var activeList;
 var activeTime = 'medium_term';
 
+var currentPlaying;
+
 // ================================
 //            functions
 // ================================
@@ -170,7 +172,8 @@ var transition = function( div, type ) {
 
         play( {
           playerInstance: localPlayerInstance,
-          spotify_uri: trackData.track.uri,
+          spotify_uri: [ trackData.track.uri ],
+          param_key: 'uris'
         } );
       }
     )
@@ -232,6 +235,32 @@ var fadeIn = function(element) {
     }, 20);
 };
 
+var playStat = function( e ) {
+  // check to see if player is instantiated before attempting to play
+  if ( localPlayerInstance && currentPlaying !== e.currentTarget.dataset.uri ) {
+    var uri = e.currentTarget.dataset.uri;
+    currentPlaying = e.currentTarget.dataset.uri;
+    type = e.currentTarget.dataset.uriType;
+
+    if ( type == 'uris' ) {
+      uri = [ uri ];
+
+      play( {
+        playerInstance: localPlayerInstance,
+        spotify_uri: uri,
+        param_key: type
+      } );
+    }
+    else {
+      playArtist( {
+        playerInstance: localPlayerInstance,
+        spotify_uri: uri,
+        param_key: type
+      } )
+    }
+  }
+};
+
 var buildArtistStatDiv = function( data, index ) {
   var shell = document.createElement( 'div' );
   shell.classList.add( 'artist-stat-div' );
@@ -246,7 +275,6 @@ var buildArtistStatDiv = function( data, index ) {
   else if ( data.type == 'artist' ) {
     infoDiv.classList.add( 'artist-stat-info-div' );
   }
-
 
   var img = document.createElement( 'img' );
   img.crossOrigin = '';
@@ -291,6 +319,33 @@ var buildArtistStatDiv = function( data, index ) {
     subTitleNode.classList.add( 'track-artist-title' );
     subTitleNode.textContent = 'by ' + data.artists[ 0 ].name;
     infoDiv.appendChild( subTitleNode );
+  }
+
+  if ( localPlayerInstance ) {
+    var listenDiv = document.createElement( 'div' );
+    listenDiv.classList.add( 'listen-container' );
+
+    var listenButton = document.createElement( 'div' );
+    listenButton.classList.add( 'listen-button' );
+    listenButton.id = data.uri;
+    listenButton.dataset.uri = data.uri;
+
+    if ( data.type == 'artist' ) {
+      listenButton.dataset.uriType = 'uri_context'
+    }
+    else {
+      listenButton.dataset.uriType = 'uris'
+    }
+
+    listenButton.onclick = playStat;
+
+    var listenText = document.createElement( 'p' );
+    listenText.classList.add( 'listen-text' );
+    listenText.textContent = 'Listen Now';
+
+    listenButton.append( listenText );
+    listenDiv.append( listenButton );
+    infoDiv.append( listenDiv );
   }
 
   shell.appendChild( imgDiv );
@@ -622,7 +677,30 @@ const play = (
   getOAuthToken( access_token => {
     fetch( `https://api.spotify.com/v1/me/player/play?device_id=${id}`, {
       method: 'PUT',
-      body: JSON.stringify( { uris: [ spotify_uri ] } ),
+      body: JSON.stringify( { uris: spotify_uri } ),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+    } );
+  } );
+};
+
+const playArtist = (
+  {
+    spotify_uri,
+    playerInstance: {
+      _options: {
+        getOAuthToken,
+        id
+      }
+    }
+  }
+) => {
+  getOAuthToken( access_token => {
+    fetch( `https://api.spotify.com/v1/me/player/play?device_id=${id}`, {
+      method: 'PUT',
+      body: JSON.stringify( { context_uri: spotify_uri } ),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${authToken}`
@@ -711,13 +789,19 @@ if ( window.location.hash ) {
     artistListButton.style.display = 'block';
     trackListButton.style.display = 'block';
 
+    shortTermButton.style.display = 'block';
+    mediumTermButton.style.display = 'block';
+    longTermButton.style.display = 'block';
+
     queryStats( 'artists' );
   }
 }
 else {
-
   artistListButton.style.display = 'none';
   trackListButton.style.display = 'none';
+  shortTermButton.style.display = 'none';
+  mediumTermButton.style.display = 'none';
+  longTermButton.style.display = 'none';
 }
 
 initialize();
