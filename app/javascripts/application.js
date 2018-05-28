@@ -279,21 +279,50 @@ var buildArtistStatDiv = function( data, index ) {
   var img = document.createElement( 'img' );
   img.crossOrigin = '';
 
+  var image;
   if ( data.type == 'track' ) {
     img.classList.add( 'track-stat-img' );
-    img.src = pickImage( data.album.images );
+    image = pickImage( data.album.images );
+    img.src = image;
   }
   else {
     img.classList.add( 'artist-stat-img' );
-    img.src = pickImage( data.images );
+    image = pickImage( data.images );
+    img.src = image;
   }
 
   imgDiv.appendChild( img );
 
-  img.addEventListener( 'load', function() {
-    var rgb = getAverageRGB( img );
-    shell.style.background = 'linear-gradient( -150deg, rgba( ' + rgb.r + ',' + rgb.g + ',' + rgb.b + ', 0.2 ), rgba( ' + rgb.r + ',' + rgb.g + ',' + rgb.b + ', 0.8 )';
-  } );
+  // ########################
+  // blurred background start
+  // ########################
+
+  var shellBackground = document.createElement( 'div' );
+  shellBackground.classList.add( 'shell-background' );
+
+  var backgroundImgContainer = document.createElement( 'div' );
+  backgroundImgContainer.classList.add( 'shell-background-image-container' );
+
+  var backgroundImg = document.createElement( 'img' );
+  backgroundImg.src = image;
+
+  backgroundImgContainer.appendChild( backgroundImg );
+
+  var backgroundShadow = document.createElement( 'div' );
+  backgroundShadow.classList.add( 'shell-shadow' );
+
+  shellBackground.appendChild( backgroundImgContainer );
+  shellBackground.appendChild( backgroundShadow );
+  shell.appendChild( shellBackground );
+  
+  // #########################
+  // blurred background finish
+  // #########################
+
+  // img.addEventListener( 'load', function() {
+  //   var rgb = getAverageRGB( img );
+  //   shell.style.background = 'linear-gradient( -150deg, rgba( ' + rgb.r + ',' + rgb.g + ',' + rgb.b + ', 0.2 ), rgba( ' + rgb.r + ',' + rgb.g + ',' + rgb.b + ', 0.8 )';
+  // } );
 
   var rankingDivContainer = document.createElement( 'div' );
   rankingDivContainer.classList.add( 'ranking-container' );
@@ -309,10 +338,15 @@ var buildArtistStatDiv = function( data, index ) {
   rankingDivContainer.appendChild( rankingDiv );
   infoDiv.appendChild( rankingDivContainer );
 
+  var titleContainer = document.createElement( 'div' );
+  titleContainer.classList.add( 'title-container' );
+
   var titleNode = document.createElement( 'h2' );
   titleNode.classList.add( 'artist-stat-title' )
   titleNode.textContent = data.name;
-  infoDiv.appendChild( titleNode );
+  
+  titleContainer.appendChild( titleNode ); 
+  infoDiv.appendChild( titleContainer );
 
   if ( data.type == 'track' ) {
     var subTitleNode = document.createElement( 'p' );

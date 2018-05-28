@@ -2,9 +2,9 @@ var express = require( 'express' );
 var path = require( 'path' );
 var ejs = require( 'ejs' );
 var requestPromise = require( 'request-promise' );
-var bodyParser = require('body-parser');
-var cookieParser = require('cookie-parser');
-var querystring = require('querystring');
+var bodyParser = require( 'body-parser' );
+var cookieParser = require( 'cookie-parser' );
+var querystring = require( 'querystring' );
 
 if ( !process.env.NODE_ENV || process.env.NODE_ENV === 'development' ) {
   require( 'dotenv' ).load();
@@ -12,7 +12,7 @@ if ( !process.env.NODE_ENV || process.env.NODE_ENV === 'development' ) {
 
 var CLIENT_ID = process.env.CLIENT_ID,
     CLIENT_SECRET = process.env.CLIENT_SECRET
-    REDIRECT_URI = encodeURI( process.env.REDIRECT_URL );
+    REDIRECT_URI = encodeURI( process.env.REDIRECT_URI );
 
 let token;
 let authToken;
@@ -23,12 +23,12 @@ let refreshToken;
  * @param  {number} length The length of the string
  * @return {string} The generated string
  */
-var generateRandomString = function(length) {
+var generateRandomString = function( length ) {
   var text = '';
   var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
   for (var i = 0; i < length; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
+    text += possible.charAt( Math.floor( Math.random() * possible.length ) );
   }
   return text;
 };
@@ -385,10 +385,11 @@ app.get( '/', function ( req, res ) {
 app.get( '*', function( request, response ) {
   response.set( 'Cache-Control', 'no-cache' );
   response.render( 'index.html', function( res, req ) {
-
   } );
 } );
+console.log( process.env )
 
-app.listen( ( process.env.PORT || 8000 ), function () {
-  console.log( 'BandBrowser listening on port', ( process.env.PORT || 8000 ) );
+console.log( process.env.PORT );
+app.listen( ( process.env.PORT || 3000 ), function () {
+  console.log( 'BandBrowser listening on port', ( process.env.PORT || 3000 ) );
 } );
