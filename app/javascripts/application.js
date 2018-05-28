@@ -297,6 +297,9 @@ var buildArtistStatDiv = function( data, index ) {
   // blurred background start
   // ########################
 
+  var subContainer = document.createElement( 'div' );
+  subContainer.classList.add( 'sub-container' );
+
   var shellBackground = document.createElement( 'div' );
   shellBackground.classList.add( 'shell-background' );
 
@@ -312,8 +315,8 @@ var buildArtistStatDiv = function( data, index ) {
   backgroundShadow.classList.add( 'shell-shadow' );
 
   shellBackground.appendChild( backgroundImgContainer );
-  shellBackground.appendChild( backgroundShadow );
-  shell.appendChild( shellBackground );
+  // shellBackground.appendChild( backgroundShadow );
+  subContainer.appendChild( shellBackground );
   
   // #########################
   // blurred background finish
@@ -382,10 +385,12 @@ var buildArtistStatDiv = function( data, index ) {
     infoDiv.append( listenDiv );
   }
 
+  shell.appendChild( backgroundShadow );
   shell.appendChild( imgDiv );
   shell.appendChild( infoDiv );
 
-  mainContainer.appendChild( shell );
+  subContainer.appendChild( shell );
+  mainContainer.appendChild( subContainer );
 
   return shell;
 };
