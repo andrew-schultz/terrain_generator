@@ -46,12 +46,33 @@ body {
   margin-bottom: 2px;
 }
 
+.login-container {
+  margin-top: 100px;
+  width: 400px;
+  height: 400px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.login-title {
+  margin-top: 100px;
+  width: 100%;
+  font-size: 30px;
+  text-align: center;
+}
+
+.login-subheader {
+  font-size: 20px;
+  text-align: center;
+  padding: 0px 25px;
+}
+
 #login-container {
+  height: 20px;
   width: 150px;
   padding: 10px 5px;
   background-color: #2AB858;
   text-align: center;
-  margin: 20px;
+  margin: 0 auto;
   border-radius: 25px;
 }
 
@@ -215,16 +236,29 @@ body {
   text-align: center;
 }
 
+.info-div {
+  position: relative;
+}
+
+.sub-info-container {
+  margin: 0;
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
 .artist-stat-title {
   text-align: center;
   color: #ffffff;
   font-weight: 300;
+  font-size: 40px;
   /*text-shadow: 1px 1px #2c2d2d;*/
 }
 
 .track-artist-title {
   text-align: center;
-  /*color: #2c2d2d;*/
+  color: #ffffff;
   padding: 10px;
   /*background-color: #ffffff;*/
 }
@@ -354,14 +388,14 @@ body {
 
 .shell-background-image-container img {
   margin: 0 auto;
-  width: 95%;
+  width: 900px;
   height: 100%;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   -webkit-transform: translateZ( 0 );
   transform: translateZ( 0 );
-  -webkit-filter: blur( 50px );
-  filter: blur( 50px );
+  -webkit-filter: blur( 70px );
+  filter: blur( 70px );
   display: block;
   border-radius: 5px
   overflow-y: hidden;

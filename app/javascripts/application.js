@@ -269,6 +269,7 @@ var buildArtistStatDiv = function( data, index ) {
   imgDiv.classList.add( 'artist-stat-img-div' );
 
   var infoDiv = document.createElement( 'div' );
+  infoDiv.classList.add( 'info-div' );
   if ( data.type == 'track' ) {
     infoDiv.classList.add( 'track-stat-info-div' );
   }
@@ -317,7 +318,7 @@ var buildArtistStatDiv = function( data, index ) {
   shellBackground.appendChild( backgroundImgContainer );
   // shellBackground.appendChild( backgroundShadow );
   subContainer.appendChild( shellBackground );
-  
+
   // #########################
   // blurred background finish
   // #########################
@@ -341,21 +342,24 @@ var buildArtistStatDiv = function( data, index ) {
   rankingDivContainer.appendChild( rankingDiv );
   infoDiv.appendChild( rankingDivContainer );
 
+  var subInfoDiv = document.createElement( 'div' );
+  subInfoDiv.classList.add( 'sub-info-container' );
+
   var titleContainer = document.createElement( 'div' );
   titleContainer.classList.add( 'title-container' );
 
   var titleNode = document.createElement( 'h2' );
   titleNode.classList.add( 'artist-stat-title' )
   titleNode.textContent = data.name;
-  
-  titleContainer.appendChild( titleNode ); 
-  infoDiv.appendChild( titleContainer );
+
+  titleContainer.appendChild( titleNode );
+  subInfoDiv.appendChild( titleContainer );
 
   if ( data.type == 'track' ) {
     var subTitleNode = document.createElement( 'p' );
     subTitleNode.classList.add( 'track-artist-title' );
     subTitleNode.textContent = 'by ' + data.artists[ 0 ].name;
-    infoDiv.appendChild( subTitleNode );
+    subInfoDiv.appendChild( subTitleNode );
   }
 
   if ( localPlayerInstance ) {
@@ -382,8 +386,10 @@ var buildArtistStatDiv = function( data, index ) {
 
     listenButton.append( listenText );
     listenDiv.append( listenButton );
-    infoDiv.append( listenDiv );
+    subInfoDiv.append( listenDiv );
   }
+
+  infoDiv.appendChild( subInfoDiv );
 
   shell.appendChild( backgroundShadow );
   shell.appendChild( imgDiv );

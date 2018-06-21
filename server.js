@@ -387,9 +387,7 @@ app.get( '*', function( request, response ) {
   response.render( 'index.html', function( res, req ) {
   } );
 } );
-console.log( process.env )
 
-console.log( process.env.PORT );
 app.listen( ( process.env.PORT || 3000 ), function () {
   console.log( 'BandBrowser listening on port', ( process.env.PORT || 3000 ) );
 } );
