@@ -349,7 +349,13 @@ var buildArtistStatDiv = function( data, index ) {
   titleContainer.classList.add( 'title-container' );
 
   var titleNode = document.createElement( 'h2' );
-  titleNode.classList.add( 'artist-stat-title' )
+
+  if ( data.name.length > 60 ) {
+    titleNode.classList.add( 'artist-stat-title-small' );
+  }
+  else {
+    titleNode.classList.add( 'artist-stat-title' );
+  }
   titleNode.textContent = data.name;
 
   titleContainer.appendChild( titleNode );
