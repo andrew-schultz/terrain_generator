@@ -403,10 +403,10 @@ body {
   backface-visibility: hidden;
   -webkit-transform: translateZ( 0 );
   transform: translateZ( 0 );
-  -webkit-filter: blur( 70px );
-  filter: blur( 70px );
+  -webkit-filter: blur(65px);
+  filter: blur(65px);
   display: block;
-  border-radius: 5px
+  border-radius: 5px;
   overflow-y: hidden;
 }
 
