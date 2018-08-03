@@ -399,15 +399,19 @@ body {
   margin: 0 auto;
   width: 900px;
   height: 100%;
+  position: relative;
+  display: block;
+  border-radius: 5px;
+  overflow-y: hidden;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   -webkit-transform: translateZ( 0 );
   transform: translateZ( 0 );
   -webkit-filter: blur(65px);
+  -moz-filter: blur(65px);
+  -o-filter: blur(65px);
+  -ms-filter: blur(65px);
   filter: blur(65px);
-  display: block;
-  border-radius: 5px;
-  overflow-y: hidden;
 }
 
 .shell-shadow {
