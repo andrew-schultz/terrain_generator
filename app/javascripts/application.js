@@ -34,6 +34,8 @@ var activeTime = 'medium_term';
 
 var currentPlaying;
 
+var existingCookie = getCookie( 'accessToken' );
+
 // ================================
 //            functions
 // ================================
@@ -53,6 +55,26 @@ var resize = function() {
   if ( window.innerWidth > 719 ) {
     document.getElementById( 'right' ).style.height = window.innerHeight + "px";
   }
+};
+
+var getCookie = function( cookieName ) {
+  var name = cookieName + '=';
+  var decodedCookie = decodeURIComponent( document.cookie );
+  var ca = decodedCookie.split(';');
+
+  for ( var i = 0; i <ca.length; i++ ) {
+    var c = ca[ i ];
+
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+
+    if ( c.indexOf( name ) == 0 ) {
+      return c.substring( name.length, c.length );
+    }
+  }
+
+  return null;
 };
 
 // ================================
@@ -117,7 +139,7 @@ var getAverageRGB = function( imgEl ) {
 // ================
 
 var displayResults = function( results, type ) {
-  var resultContainer = document.getElementById( `${type}-container` );
+  var resultContainer = document.getElementById( `${ type }-container` );
 
   if ( type == 'artist' ) {
     while ( resultContainer.firstChild ) {
@@ -133,7 +155,7 @@ var displayResults = function( results, type ) {
 };
 
 var transition = function( div, type ) {
-  var container = document.getElementById( `${type}-container` );
+  var container = document.getElementById( `${ type }-container` );
   var childrenArray = Array.from( container.children );
 
   childrenArray.forEach(
@@ -197,7 +219,7 @@ var buildDiv = function( data, type ) {
 
   node.appendChild( titleNode );
 
-  document.getElementById( `${type}-container` ).appendChild( node );
+  document.getElementById( `${ type }-container` ).appendChild( node );
 };
 
 // ##################
@@ -655,7 +677,7 @@ var getTopList = function( type ) {
     xmlHttp.open( 'GET', 'https://api.spotify.com/v1/me/top/' + type + dateParam, true );
     xmlHttp.setRequestHeader( 'Accept', 'application/json' );
     xmlHttp.setRequestHeader( 'Content-Type', 'application/json' );
-    xmlHttp.setRequestHeader( 'Authorization', `Bearer ${authToken}` )
+    xmlHttp.setRequestHeader( 'Authorization', `Bearer ${ authToken }` )
     xmlHttp.onreadystatechange = function() {
       if ( xmlHttp.readyState == 4 && xmlHttp.status == 200 ) {
         var results = JSON.parse( xmlHttp.response );
@@ -726,12 +748,12 @@ const play = (
   }
 ) => {
   getOAuthToken( access_token => {
-    fetch( `https://api.spotify.com/v1/me/player/play?device_id=${id}`, {
+    fetch( `https://api.spotify.com/v1/me/player/play?device_id=${ id }`, {
       method: 'PUT',
       body: JSON.stringify( { uris: spotify_uri } ),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
+        'Authorization': `Bearer ${ authToken }`
       },
     } );
   } );
@@ -749,12 +771,12 @@ const playArtist = (
   }
 ) => {
   getOAuthToken( access_token => {
-    fetch( `https://api.spotify.com/v1/me/player/play?device_id=${id}`, {
+    fetch( `https://api.spotify.com/v1/me/player/play?device_id=${ id }`, {
       method: 'PUT',
       body: JSON.stringify( { context_uri: spotify_uri } ),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
+        'Authorization': `Bearer ${ authToken }`
       },
     } );
   } );
@@ -775,10 +797,10 @@ window.onSpotifyWebPlaybackSDKReady = () => {
 
   localPlayerInstance = player;
   // Error handling
-  player.addListener( 'initialization_error', ( { message } ) => { console.error( message); } );
-  player.addListener( 'authentication_error', ( { message } ) => { console.error( message); } );
-  player.addListener( 'account_error', ( { message } ) => { console.error( message); } );
-  player.addListener( 'playback_error', ( { message } ) => { console.error( message); } );
+  player.addListener( 'initialization_error', ( { message } ) => { console.error( message ); } );
+  player.addListener( 'authentication_error', ( { message } ) => { console.error( message ); } );
+  player.addListener( 'account_error', ( { message } ) => { console.error( message ); } );
+  player.addListener( 'playback_error', ( { message } ) => { console.error( message ); } );
 
   // Playback status updates
   player.addListener( 'player_state_changed', state => { console.log( state ); } );
@@ -822,30 +844,19 @@ var initialize = function( query ) {
   xmlHttp.send();
 };
 
-if ( window.location.hash ) {
-  var queryParams = window.location.hash.slice( 2 ).split( '&' );
-  var result = {};
-  queryParams.forEach( function( param ) {
-      param = param.split( '=' );
-      result[ param[ 0 ] ] = decodeURIComponent( param[ 1 ] || '' );
-  } );
+if ( existingCookie ) {
+  authToken = existingCookie;
+  document.getElementById( 'login-button-container' ).style.display = 'none';
+  document.getElementById( 'loginButton' ).style.display = 'none';
 
-  var params = JSON.parse( JSON.stringify( result ) );
+  artistListButton.style.display = 'block';
+  trackListButton.style.display = 'block';
 
-  if ( params.access_token ) {
-    authToken = params.access_token;
-    document.getElementById( 'login-button-container' ).style.display = 'none';
-    document.getElementById( 'loginButton' ).style.display = 'none';
+  shortTermButton.style.display = 'block';
+  mediumTermButton.style.display = 'block';
+  longTermButton.style.display = 'block';
 
-    artistListButton.style.display = 'block';
-    trackListButton.style.display = 'block';
-
-    shortTermButton.style.display = 'block';
-    mediumTermButton.style.display = 'block';
-    longTermButton.style.display = 'block';
-
-    queryStats( 'artists' );
-  }
+  queryStats( 'artists' );
 }
 else {
   artistListButton.style.display = 'none';

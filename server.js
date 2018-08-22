@@ -338,12 +338,13 @@ app.get( '/tokencallback', function( request, response ) {
         authToken = results.access_token;
         refreshToken = results.refresh_token;
 
-        response.redirect( '/#' + '?' +
-          querystring.stringify( {
-            access_token: token,
-            refresh_token: refreshToken
-          } )
+        response.cookie(
+          'accessToken',
+          token,
+          { maxAge: results.expires_in }
         );
+
+        response.redirect( '/' );
       }
     );
   }
