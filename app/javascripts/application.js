@@ -33,8 +33,7 @@ var activeList;
 var activeTime = 'medium_term';
 
 var currentPlaying;
-
-var existingCookie = getCookie( 'accessToken' );
+var existingCookie;
 
 // ================================
 //            functions
@@ -57,7 +56,7 @@ var resize = function() {
   }
 };
 
-var getCookie = function( cookieName ) {
+function getCookie( cookieName ) {
   var name = cookieName + '=';
   var decodedCookie = decodeURIComponent( document.cookie );
   var ca = decodedCookie.split(';');
@@ -822,6 +821,30 @@ window.onSpotifyWebPlaybackSDKReady = () => {
 };
 
 var initialize = function( query ) {
+  existingCookie = getCookie( 'accessToken' );
+
+  if ( existingCookie ) {
+    authToken = existingCookie;
+    document.getElementById( 'login-button-container' ).style.display = 'none';
+    document.getElementById( 'loginButton' ).style.display = 'none';
+
+    artistListButton.style.display = 'block';
+    trackListButton.style.display = 'block';
+
+    shortTermButton.style.display = 'block';
+    mediumTermButton.style.display = 'block';
+    longTermButton.style.display = 'block';
+
+    queryStats( 'artists' );
+  }
+  else {
+    artistListButton.style.display = 'none';
+    trackListButton.style.display = 'none';
+    shortTermButton.style.display = 'none';
+    mediumTermButton.style.display = 'none';
+    longTermButton.style.display = 'none';
+  }
+
   var preTerm;
 
   if ( query && query.length > 0 ) {
@@ -843,27 +866,5 @@ var initialize = function( query ) {
 
   xmlHttp.send();
 };
-
-if ( existingCookie ) {
-  authToken = existingCookie;
-  document.getElementById( 'login-button-container' ).style.display = 'none';
-  document.getElementById( 'loginButton' ).style.display = 'none';
-
-  artistListButton.style.display = 'block';
-  trackListButton.style.display = 'block';
-
-  shortTermButton.style.display = 'block';
-  mediumTermButton.style.display = 'block';
-  longTermButton.style.display = 'block';
-
-  queryStats( 'artists' );
-}
-else {
-  artistListButton.style.display = 'none';
-  trackListButton.style.display = 'none';
-  shortTermButton.style.display = 'none';
-  mediumTermButton.style.display = 'none';
-  longTermButton.style.display = 'none';
-}
 
 initialize();
