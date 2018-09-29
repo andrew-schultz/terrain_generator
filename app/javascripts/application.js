@@ -371,7 +371,7 @@ var buildArtistStatDiv = function( data, index ) {
 
   var titleNode = document.createElement( 'h2' );
 
-  if ( data.name.length > 60 ) {
+  if ( data.name.length > 45 ) {
     titleNode.classList.add( 'artist-stat-title-small' );
   }
   else {
@@ -822,9 +822,17 @@ window.onSpotifyWebPlaybackSDKReady = () => {
 
 var initialize = function( query ) {
   existingCookie = getCookie( 'accessToken' );
+  authCookie = getCookie( 'auth_token' );
 
-  if ( existingCookie ) {
-    authToken = existingCookie;
+  if ( existingCookie || authCookie ) {
+    if ( existingCookie ) {
+      document.cookie = 'auth_token=' + existingCookie;
+    }
+    else if ( authCookie) {
+      document.cookie = 'auth_token=' + authCookie;
+    }
+
+    authToken = existingCookie || authCookie;
     document.getElementById( 'login-button-container' ).style.display = 'none';
     document.getElementById( 'loginButton' ).style.display = 'none';
 

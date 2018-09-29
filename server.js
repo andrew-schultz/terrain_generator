@@ -341,7 +341,7 @@ app.get( '/tokencallback', function( request, response ) {
         response.cookie(
           'accessToken',
           token,
-          { maxAge: results.expires_in }
+          { expires: new Date( Date.now() + results.expires_in ) }
         );
 
         response.redirect( '/' );
