@@ -96,11 +96,8 @@ var isMobile = {
   Chrome: function() {
     return navigator.userAgent.match( /Mobile/i );
   },
-  Safari: function() {
-    return navigator.userAgent.match( /Safari/i );
-  },
   any: function() {
-    return ( isMobile.Android() || isMobile.BlackBerry() || isMobile.iOS() || isMobile.Opera() || isMobile.Windows() || isMobile.Chrome() || isMobile.Safari() );
+    return ( isMobile.Android() || isMobile.BlackBerry() || isMobile.iOS() || isMobile.Opera() || isMobile.Windows() || isMobile.Chrome() );
   }
 };
 
