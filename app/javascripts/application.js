@@ -11,6 +11,7 @@ var authToken;
 var localPlayerInstance;
 
 var deviceId;
+var mobileDevice = false;
 
 var trackData = {};
 var searchData = {};
@@ -76,6 +77,30 @@ function getCookie( cookieName ) {
   return null;
 };
 
+var isMobile = {
+  Android: function() {
+    return navigator.userAgent.match( /Android/i );
+  },
+  BlackBerry: function() {
+    return navigator.userAgent.match( /BlackBerry/i );
+  },
+  iOS: function() {
+    return navigator.userAgent.match( /iPhone|iPad|iPod/i );
+  },
+  Opera: function() {
+    return navigator.userAgent.match( /Opera Mini/i );
+  },
+  Windows: function() {
+    return navigator.userAgent.match( /IEMobile/i );
+  },
+  Chrome: function() {
+    return navigator.userAgent.match( /Mobile/i );
+  },
+  any: function() {
+    return ( isMobile.Android() || isMobile.BlackBerry() || isMobile.iOS() || isMobile.Opera() || isMobile.Windows() || isMobile.Chrome() );
+  }
+};
+
 // ================================
 //            ImgBaseColor
 // ================================
@@ -106,7 +131,7 @@ var getAverageRGB = function( imgEl ) {
 
     try {
         data = context.getImageData( 0, 0, width, height );
-    } 
+    }
     catch( e ) {
         /* security error, img on diff domain */
         // alert('x');
@@ -247,8 +272,8 @@ var pickImage = function( images ) {
 var fadeIn = function( element ) {
   var op = 0.1;  // initial opacity
   element.style.display = 'block';
-  
-  var timer = setInterval( 
+
+  var timer = setInterval(
     function () {
       if ( op >= 1 ){
           clearInterval( timer);
@@ -256,7 +281,7 @@ var fadeIn = function( element ) {
       element.style.opacity = op;
       element.style.filter = 'alpha(opacity=' + op * 100 + ")";
       op += op * 0.1;
-    }, 
+    },
     20
   );
 };
@@ -408,7 +433,7 @@ var buildArtistStatDiv = function( data, index ) {
     subInfoDiv.appendChild( subTitleNode );
   }
 
-  if ( localPlayerInstance ) {
+  if ( localPlayerInstance && !mobileDevice ) {
     var listenDiv = document.createElement( 'div' );
     listenDiv.classList.add( 'listen-container' );
 
@@ -842,6 +867,8 @@ window.onSpotifyWebPlaybackSDKReady = () => {
 var initialize = function( query ) {
   existingCookie = getCookie( 'accessToken' );
   authCookie = getCookie( 'auth_token' );
+
+  mobileDevice = isMobile.any();
 
   if ( existingCookie || authCookie ) {
     if ( existingCookie ) {
