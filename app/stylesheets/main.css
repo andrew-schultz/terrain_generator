@@ -272,6 +272,11 @@ body {
   /*background-color: #ffffff;*/
 }
 
+.track-artist-title-small {
+  text-align: center;
+  color: #ffffff;
+}
+
 .artist-stat-div {
   position: relative;
   height: 400px;
@@ -305,7 +310,7 @@ body {
 
 .artist-stat-img-div {
   height: 400px;
-  max-width: 500px;
+  /*max-width: 500px;*/
   position: relative;
   float: left;
   border-radius: 5px;
@@ -323,7 +328,7 @@ body {
 }
 
 .track-stat-img {
-  height: 300px;
+  height: 300px !important;
   width: 300px;
   margin-top: 50px;
   margin-left: 50px;
@@ -423,4 +428,76 @@ body {
   width: 100%;
   height: 100%;
   border-radius: 5px;
+}
+
+@media all and ( max-width: 900px ) {
+  .artist-stat-div {
+    width: 90%;
+    height: auto;
+  }
+
+  .artist-stat-img-div {
+    height: auto;
+    width: auto;
+    text-align: center;
+    float: none;
+  }
+
+  .artist-stat-img-div img {
+    margin-left: 0px;
+    margin-top: 25px;
+    width: 300px;
+    height: 200px;
+  }
+
+  .artist-stat-info-div {
+    height: auto;
+    width: auto;
+    padding: 5px;
+    float: none;
+    padding-bottom: 20px;
+  }
+
+  .sub-info-container {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+  }
+
+  .artist-stat-title {
+    margin-top: 5px;
+    margin-bottom: 10px;
+  }
+
+  .artist-stat-title-small {
+    margin-top: 5px;
+    margin-bottom: 10px;
+  }
+
+  .track-stat-info-div {
+    height: auto;
+    width: auto;
+    padding: 5px;
+    float: none;
+    padding-bottom: 20px;
+  }
+
+  .track-artist-title {
+    padding: 0px;
+  }
+
+  .ranking-container {
+    position: absolute;
+    margin-top: -230px;
+    right: 0px;
+  }
+
+  .ranking-track {
+    margin-top: -333px;
+  }
+
+  .shell-background-image-container img {
+    width: 100%;
+  }
 }

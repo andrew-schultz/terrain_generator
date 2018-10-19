@@ -390,5 +390,5 @@ app.get( '*', function( request, response ) {
 } );
 
 app.listen( ( process.env.PORT || 3000 ), function () {
-  console.log( 'BandBrowser listening on port', ( process.env.PORT || 3000 ) );
+  console.log( 'Top 20 listening on port', ( process.env.PORT || 3000 ) );
 } );

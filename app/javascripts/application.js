@@ -86,45 +86,46 @@ function getCookie( cookieName ) {
 var getAverageRGB = function( imgEl ) {
 
     var blockSize = 5, // only visit every 5 pixels
-        defaultRGB = { r:0, g:0, b:0 }, // for non-supporting envs
-        canvas = document.createElement('canvas'),
-        context = canvas.getContext && canvas.getContext('2d'),
+        defaultRGB = { r: 0, g: 0, b: 0 }, // for non-supporting envs
+        canvas = document.createElement( 'canvas' ),
+        context = canvas.getContext && canvas.getContext( '2d' ),
         data, width, height,
         i = -4,
         length,
         rgb = { r:0, g:0, b:0 },
         count = 0;
 
-    if (!context) {
+    if ( !context ) {
       return defaultRGB;
     }
 
     height = canvas.height = imgEl.naturalHeight || imgEl.offsetHeight || imgEl.height || 300;
     width = canvas.width = imgEl.naturalWidth || imgEl.offsetWidth || imgEl.width || 300;
 
-    context.drawImage(imgEl, 0, 0);
+    context.drawImage( imgEl, 0, 0 );
 
     try {
-        data = context.getImageData(0, 0, width, height);
-    } catch(e) {
+        data = context.getImageData( 0, 0, width, height );
+    } 
+    catch( e ) {
         /* security error, img on diff domain */
         // alert('x');
-        return defaultRGB;
+      return defaultRGB;
     }
 
     length = data.data.length;
 
-    while ( (i += blockSize * 4) < length ) {
+    while ( ( i += blockSize * 4 ) < length ) {
         ++count;
-        rgb.r += data.data[i];
-        rgb.g += data.data[i+1];
-        rgb.b += data.data[i+2];
+        rgb.r += data.data[ i ];
+        rgb.g += data.data[ i + 1 ];
+        rgb.b += data.data[ i + 2 ];
     }
 
     // ~~ used to floor values
-    rgb.r = ~~(rgb.r/count);
-    rgb.g = ~~(rgb.g/count);
-    rgb.b = ~~(rgb.b/count);
+    rgb.r = ~~( rgb.r/count );
+    rgb.g = ~~( rgb.g/count );
+    rgb.b = ~~( rgb.b/count );
 
     return rgb;
 
@@ -243,17 +244,21 @@ var pickImage = function( images ) {
   return image.url;
 };
 
-var fadeIn = function(element) {
-    var op = 0.1;  // initial opacity
-    element.style.display = 'block';
-    var timer = setInterval(function () {
-        if (op >= 1){
-            clearInterval(timer);
-        }
-        element.style.opacity = op;
-        element.style.filter = 'alpha(opacity=' + op * 100 + ")";
-        op += op * 0.1;
-    }, 20);
+var fadeIn = function( element ) {
+  var op = 0.1;  // initial opacity
+  element.style.display = 'block';
+  
+  var timer = setInterval( 
+    function () {
+      if ( op >= 1 ){
+          clearInterval( timer);
+      }
+      element.style.opacity = op;
+      element.style.filter = 'alpha(opacity=' + op * 100 + ")";
+      op += op * 0.1;
+    }, 
+    20
+  );
 };
 
 var playStat = function( e ) {
@@ -352,6 +357,10 @@ var buildArtistStatDiv = function( data, index ) {
   var rankingDivContainer = document.createElement( 'div' );
   rankingDivContainer.classList.add( 'ranking-container' );
 
+  if ( data.type == 'track' ) {
+    rankingDivContainer.classList.add( 'ranking-track' );
+  }
+
   var rankingDiv = document.createElement( 'div' );
   rankingDiv.classList.add( 'ranking-div' );
 
@@ -370,13 +379,16 @@ var buildArtistStatDiv = function( data, index ) {
   titleContainer.classList.add( 'title-container' );
 
   var titleNode = document.createElement( 'h2' );
+  var longTitle = false;
 
-  if ( data.name.length > 45 ) {
+  if ( data.name.length > 40 ) {
+    longTitle = true;
     titleNode.classList.add( 'artist-stat-title-small' );
   }
   else {
     titleNode.classList.add( 'artist-stat-title' );
   }
+
   titleNode.textContent = data.name;
 
   titleContainer.appendChild( titleNode );
@@ -384,7 +396,14 @@ var buildArtistStatDiv = function( data, index ) {
 
   if ( data.type == 'track' ) {
     var subTitleNode = document.createElement( 'p' );
-    subTitleNode.classList.add( 'track-artist-title' );
+
+    if ( longTitle ) {
+      subTitleNode.classList.add( 'track-artist-title-small')
+    }
+    else {
+      subTitleNode.classList.add( 'track-artist-title' );
+    }
+
     subTitleNode.textContent = 'by ' + data.artists[ 0 ].name;
     subInfoDiv.appendChild( subTitleNode );
   }
