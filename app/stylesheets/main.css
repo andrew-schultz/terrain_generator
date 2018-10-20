@@ -497,6 +497,10 @@ body {
     margin-top: -333px;
   }
 
+  .ranking-div {
+    box-shadow: 0 1px 5px 0 rgba(0, 0, 0, 0.3), 0 2px 5px 0 rgba(0, 0, 0, 0.4);
+  }
+
   .shell-background-image-container img {
     width: 100%;
   }
