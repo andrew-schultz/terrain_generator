@@ -280,9 +280,9 @@ var fadeIn = function( element ) {
       }
       element.style.opacity = op;
       element.style.filter = 'alpha(opacity=' + op * 100 + ")";
-      op += op * 0.1;
+      op += op * 0.3;
     },
-    20
+    10
   );
 };
 
@@ -520,6 +520,8 @@ var setTime = function( time ) {
           function( result, index ) {
             var newDiv = buildArtistStatDiv( result, index );
             fadeIn( newDiv );
+            // newDiv.style.display = 'block';
+            // newDiv.style.opacity = 1;
           }
         );
       }
@@ -543,6 +545,8 @@ var queryStats = function( term ) {
           function( result, index ) {
             var newDiv = buildArtistStatDiv( result, index );
             fadeIn( newDiv );
+            // newDiv.style.display = 'block';
+            // newDiv.style.opacity = 1;
           }
         );
       }
