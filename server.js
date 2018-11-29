@@ -344,6 +344,12 @@ app.get( '/tokencallback', function( request, response ) {
           { expires: new Date( Date.now() + results.expires_in ) }
         );
 
+        response.cookie( 
+          'refreshToken',
+          refreshToken,
+          { expires: new Date( Date.now() + results.expires_in ) }
+        );
+
         response.redirect( '/' );
       }
     );
@@ -351,17 +357,24 @@ app.get( '/tokencallback', function( request, response ) {
 } );
 
 // requesting access token from refresh token
-app.get( '/refresh_token', function( request, response ) {
-  var refreshToken = request.query.refresh_token;
+app.post( '/refresh_token', function( request, response ) {
   spotifyTokenRequest(
     'https://accounts.spotify.com/api/token',
     {
-      grant_type: 'refresh_token',
-      refresh_token: refreshToken
+      'grant_type': 'refresh_token',
+      'refresh_token': refreshToken
     },
     function( results ) {
-      var token = results.access_token;
-      response.send( results );
+      token = results.access_token;
+      authToken = results.access_token;
+
+      response.cookie(
+        'accessToken',
+        token,
+        { expires: new Date( Date.now() + results.expires_in ) }
+      );
+
+      response.send( { access_token: results.access_token } );
     }
   );
 } );

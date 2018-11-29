@@ -35,6 +35,8 @@ var activeTime = 'medium_term';
 
 var currentPlaying;
 var existingCookie;
+var retryCounter = 0;
+
 
 // ================================
 //            functions
@@ -533,22 +535,27 @@ var queryStats = function( term ) {
   if ( activeList !== term ) {
     getTopList( term ).then(
       function( results ) {
-        // remove any existing stat containers
-        while ( mainContainer.hasChildNodes() ) {
-          mainContainer.removeChild( mainContainer.lastChild );
-        };
+        if ( results === 'retry' ) {
+          queryStats( term )
+        }
+        else {
+          // remove any existing stat containers
+          while ( mainContainer.hasChildNodes() ) {
+            mainContainer.removeChild( mainContainer.lastChild );
+          };
 
-        activeList = term;
-        toggleListButtons( term );
+          activeList = term;
+          toggleListButtons( term );
 
-        results.items.forEach(
-          function( result, index ) {
-            var newDiv = buildArtistStatDiv( result, index );
-            fadeIn( newDiv );
-            // newDiv.style.display = 'block';
-            // newDiv.style.opacity = 1;
-          }
-        );
+          results.items.forEach(
+            function( result, index ) {
+              var newDiv = buildArtistStatDiv( result, index );
+              fadeIn( newDiv );
+              // newDiv.style.display = 'block';
+              // newDiv.style.opacity = 1;
+            }
+          );
+        }
       }
     );
   }
@@ -716,6 +723,42 @@ var getCurrentState = function() {
   xmlHttp.send( JSON.stringify( data ) );
 };
 
+var refreshToken = function( type ) {
+  return new Promise( ( resolve, reject ) => {
+    retryCounter += 1;
+
+    if ( retryCounter < 3 ) {
+      var xmlHttp = new XMLHttpRequest();
+
+      xmlHttp.open( 'POST', '/refresh_token', true );
+      xmlHttp.onreadystatechange = function() {
+        if ( xmlHttp.readyState == 4 && xmlHttp.status == 200 ) {
+          var results = JSON.parse( xmlHttp.response );
+
+          var authExpire = new Date();
+          authExpire.setTime( authExpire.getTime() + ( 60 * 1000 ) );
+          var expires = "expires="+ authExpire.toUTCString();
+          
+          document.cookie = 'auth_token=' + results.access_token + ';' + expires;
+          authToken = results.access_token;
+
+          resolve( 'retry' );
+        }
+        else if ( xmlHttp.readyState == 4 && xmlHttp.status != 200 ) {
+          console.log( 'error' );
+          resolve( refreshToken() );
+        }
+      };
+
+      xmlHttp.send();
+
+    }
+    else {
+      resolve( 'nope' );
+    }
+  } );
+};
+
 var getTopList = function( type ) {
   return new Promise( ( resolve, reject ) => {
     var xmlHttp = new XMLHttpRequest();
@@ -732,6 +775,7 @@ var getTopList = function( type ) {
       }
       else if ( xmlHttp.readyState == 4 && xmlHttp.status != 200 ) {
         console.log( 'error' );
+        resolve( refreshToken() );
       }
     };
 
@@ -871,18 +915,34 @@ window.onSpotifyWebPlaybackSDKReady = () => {
 var initialize = function( query ) {
   existingCookie = getCookie( 'accessToken' );
   authCookie = getCookie( 'auth_token' );
+  refreshCookie = getCookie( 'refresh_token' );
+  existingRefreshCookie = getCookie( 'refreshToken' );
 
   mobileDevice = isMobile.any();
 
+  var authExpire = new Date();
+  authExpire.setTime( authExpire.getTime() + ( 60 * 1000 ) );
+  var expires = "expires="+ authExpire.toUTCString();
+
   if ( existingCookie || authCookie ) {
     if ( existingCookie ) {
-      document.cookie = 'auth_token=' + existingCookie;
+      document.cookie = 'auth_token=' + existingCookie + ';' + expires;
     }
     else if ( authCookie) {
-      document.cookie = 'auth_token=' + authCookie;
+      document.cookie = 'auth_token=' + authCookie + ';' + expires;
+    }
+
+    if ( refreshCookie || existingRefreshCookie ) {
+      if ( existingRefreshCookie ) {
+        document.cookie = 'refresh_token=' + existingRefreshCookie;
+      }
+      else if ( refreshCookie ) {
+        document.cookie = 'refresh_token=' + refreshCookie;
+      }
     }
 
     authToken = existingCookie || authCookie;
+    refToken = existingRefreshCookie || refreshToken;
     document.getElementById( 'login-button-container' ).style.display = 'none';
     document.getElementById( 'loginButton' ).style.display = 'none';
 
