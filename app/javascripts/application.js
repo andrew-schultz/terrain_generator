@@ -11,6 +11,7 @@ var authToken;
 var localPlayerInstance;
 
 var deviceId;
+var mobileDevice = false;
 
 var trackData = {};
 var searchData = {};
@@ -33,6 +34,9 @@ var activeList;
 var activeTime = 'medium_term';
 
 var currentPlaying;
+var existingCookie;
+var retryCounter = 0;
+
 
 // ================================
 //            functions
@@ -55,6 +59,50 @@ var resize = function() {
   }
 };
 
+function getCookie( cookieName ) {
+  var name = cookieName + '=';
+  var decodedCookie = decodeURIComponent( document.cookie );
+  var ca = decodedCookie.split(';');
+
+  for ( var i = 0; i <ca.length; i++ ) {
+    var c = ca[ i ];
+
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+
+    if ( c.indexOf( name ) == 0 ) {
+      return c.substring( name.length, c.length );
+    }
+  }
+
+  return null;
+};
+
+var isMobile = {
+  Android: function() {
+    return navigator.userAgent.match( /Android/i );
+  },
+  BlackBerry: function() {
+    return navigator.userAgent.match( /BlackBerry/i );
+  },
+  iOS: function() {
+    return navigator.userAgent.match( /iPhone|iPad|iPod/i );
+  },
+  Opera: function() {
+    return navigator.userAgent.match( /Opera Mini/i );
+  },
+  Windows: function() {
+    return navigator.userAgent.match( /IEMobile/i );
+  },
+  Chrome: function() {
+    return navigator.userAgent.match( /Mobile/i );
+  },
+  any: function() {
+    return ( isMobile.Android() || isMobile.BlackBerry() || isMobile.iOS() || isMobile.Opera() || isMobile.Windows() || isMobile.Chrome() );
+  }
+};
+
 // ================================
 //            ImgBaseColor
 // ================================
@@ -65,45 +113,46 @@ var resize = function() {
 var getAverageRGB = function( imgEl ) {
 
     var blockSize = 5, // only visit every 5 pixels
-        defaultRGB = { r:0, g:0, b:0 }, // for non-supporting envs
-        canvas = document.createElement('canvas'),
-        context = canvas.getContext && canvas.getContext('2d'),
+        defaultRGB = { r: 0, g: 0, b: 0 }, // for non-supporting envs
+        canvas = document.createElement( 'canvas' ),
+        context = canvas.getContext && canvas.getContext( '2d' ),
         data, width, height,
         i = -4,
         length,
         rgb = { r:0, g:0, b:0 },
         count = 0;
 
-    if (!context) {
+    if ( !context ) {
       return defaultRGB;
     }
 
     height = canvas.height = imgEl.naturalHeight || imgEl.offsetHeight || imgEl.height || 300;
     width = canvas.width = imgEl.naturalWidth || imgEl.offsetWidth || imgEl.width || 300;
 
-    context.drawImage(imgEl, 0, 0);
+    context.drawImage( imgEl, 0, 0 );
 
     try {
-        data = context.getImageData(0, 0, width, height);
-    } catch(e) {
+        data = context.getImageData( 0, 0, width, height );
+    }
+    catch( e ) {
         /* security error, img on diff domain */
         // alert('x');
-        return defaultRGB;
+      return defaultRGB;
     }
 
     length = data.data.length;
 
-    while ( (i += blockSize * 4) < length ) {
+    while ( ( i += blockSize * 4 ) < length ) {
         ++count;
-        rgb.r += data.data[i];
-        rgb.g += data.data[i+1];
-        rgb.b += data.data[i+2];
+        rgb.r += data.data[ i ];
+        rgb.g += data.data[ i + 1 ];
+        rgb.b += data.data[ i + 2 ];
     }
 
     // ~~ used to floor values
-    rgb.r = ~~(rgb.r/count);
-    rgb.g = ~~(rgb.g/count);
-    rgb.b = ~~(rgb.b/count);
+    rgb.r = ~~( rgb.r/count );
+    rgb.g = ~~( rgb.g/count );
+    rgb.b = ~~( rgb.b/count );
 
     return rgb;
 
@@ -117,7 +166,7 @@ var getAverageRGB = function( imgEl ) {
 // ================
 
 var displayResults = function( results, type ) {
-  var resultContainer = document.getElementById( `${type}-container` );
+  var resultContainer = document.getElementById( `${ type }-container` );
 
   if ( type == 'artist' ) {
     while ( resultContainer.firstChild ) {
@@ -133,7 +182,7 @@ var displayResults = function( results, type ) {
 };
 
 var transition = function( div, type ) {
-  var container = document.getElementById( `${type}-container` );
+  var container = document.getElementById( `${ type }-container` );
   var childrenArray = Array.from( container.children );
 
   childrenArray.forEach(
@@ -197,7 +246,7 @@ var buildDiv = function( data, type ) {
 
   node.appendChild( titleNode );
 
-  document.getElementById( `${type}-container` ).appendChild( node );
+  document.getElementById( `${ type }-container` ).appendChild( node );
 };
 
 // ##################
@@ -222,17 +271,21 @@ var pickImage = function( images ) {
   return image.url;
 };
 
-var fadeIn = function(element) {
-    var op = 0.1;  // initial opacity
-    element.style.display = 'block';
-    var timer = setInterval(function () {
-        if (op >= 1){
-            clearInterval(timer);
-        }
-        element.style.opacity = op;
-        element.style.filter = 'alpha(opacity=' + op * 100 + ")";
-        op += op * 0.1;
-    }, 20);
+var fadeIn = function( element ) {
+  var op = 0.1;  // initial opacity
+  element.style.display = 'block';
+
+  var timer = setInterval(
+    function () {
+      if ( op >= 1 ){
+          clearInterval( timer);
+      }
+      element.style.opacity = op;
+      element.style.filter = 'alpha(opacity=' + op * 100 + ")";
+      op += op * 0.3;
+    },
+    10
+  );
 };
 
 var playStat = function( e ) {
@@ -269,6 +322,7 @@ var buildArtistStatDiv = function( data, index ) {
   imgDiv.classList.add( 'artist-stat-img-div' );
 
   var infoDiv = document.createElement( 'div' );
+  infoDiv.classList.add( 'info-div' );
   if ( data.type == 'track' ) {
     infoDiv.classList.add( 'track-stat-info-div' );
   }
@@ -279,24 +333,60 @@ var buildArtistStatDiv = function( data, index ) {
   var img = document.createElement( 'img' );
   img.crossOrigin = '';
 
+  var image;
   if ( data.type == 'track' ) {
     img.classList.add( 'track-stat-img' );
-    img.src = pickImage( data.album.images );
+    image = pickImage( data.album.images );
+    img.src = image;
   }
   else {
     img.classList.add( 'artist-stat-img' );
-    img.src = pickImage( data.images );
+    image = pickImage( data.images );
+    img.src = image;
   }
 
   imgDiv.appendChild( img );
 
-  img.addEventListener( 'load', function() {
-    var rgb = getAverageRGB( img );
-    shell.style.background = 'linear-gradient( -150deg, rgba( ' + rgb.r + ',' + rgb.g + ',' + rgb.b + ', 0.2 ), rgba( ' + rgb.r + ',' + rgb.g + ',' + rgb.b + ', 0.8 )';
-  } );
+  // ########################
+  // blurred background start
+  // ########################
+
+  var subContainer = document.createElement( 'div' );
+  subContainer.classList.add( 'sub-container' );
+
+  var shellBackground = document.createElement( 'div' );
+  shellBackground.classList.add( 'shell-background' );
+
+  var backgroundImgContainer = document.createElement( 'div' );
+  backgroundImgContainer.classList.add( 'shell-background-image-container' );
+
+  var backgroundImg = document.createElement( 'img' );
+  backgroundImg.src = image;
+
+  backgroundImgContainer.appendChild( backgroundImg );
+
+  var backgroundShadow = document.createElement( 'div' );
+  backgroundShadow.classList.add( 'shell-shadow' );
+
+  shellBackground.appendChild( backgroundImgContainer );
+  // shellBackground.appendChild( backgroundShadow );
+  subContainer.appendChild( shellBackground );
+
+  // #########################
+  // blurred background finish
+  // #########################
+
+  // img.addEventListener( 'load', function() {
+  //   var rgb = getAverageRGB( img );
+  //   shell.style.background = 'linear-gradient( -150deg, rgba( ' + rgb.r + ',' + rgb.g + ',' + rgb.b + ', 0.2 ), rgba( ' + rgb.r + ',' + rgb.g + ',' + rgb.b + ', 0.8 )';
+  // } );
 
   var rankingDivContainer = document.createElement( 'div' );
   rankingDivContainer.classList.add( 'ranking-container' );
+
+  if ( data.type == 'track' ) {
+    rankingDivContainer.classList.add( 'ranking-track' );
+  }
 
   var rankingDiv = document.createElement( 'div' );
   rankingDiv.classList.add( 'ranking-div' );
@@ -309,19 +399,43 @@ var buildArtistStatDiv = function( data, index ) {
   rankingDivContainer.appendChild( rankingDiv );
   infoDiv.appendChild( rankingDivContainer );
 
+  var subInfoDiv = document.createElement( 'div' );
+  subInfoDiv.classList.add( 'sub-info-container' );
+
+  var titleContainer = document.createElement( 'div' );
+  titleContainer.classList.add( 'title-container' );
+
   var titleNode = document.createElement( 'h2' );
-  titleNode.classList.add( 'artist-stat-title' )
+  var longTitle = false;
+
+  if ( data.name.length > 40 ) {
+    longTitle = true;
+    titleNode.classList.add( 'artist-stat-title-small' );
+  }
+  else {
+    titleNode.classList.add( 'artist-stat-title' );
+  }
+
   titleNode.textContent = data.name;
-  infoDiv.appendChild( titleNode );
+
+  titleContainer.appendChild( titleNode );
+  subInfoDiv.appendChild( titleContainer );
 
   if ( data.type == 'track' ) {
     var subTitleNode = document.createElement( 'p' );
-    subTitleNode.classList.add( 'track-artist-title' );
+
+    if ( longTitle ) {
+      subTitleNode.classList.add( 'track-artist-title-small')
+    }
+    else {
+      subTitleNode.classList.add( 'track-artist-title' );
+    }
+
     subTitleNode.textContent = 'by ' + data.artists[ 0 ].name;
-    infoDiv.appendChild( subTitleNode );
+    subInfoDiv.appendChild( subTitleNode );
   }
 
-  if ( localPlayerInstance ) {
+  if ( localPlayerInstance && !mobileDevice ) {
     var listenDiv = document.createElement( 'div' );
     listenDiv.classList.add( 'listen-container' );
 
@@ -345,13 +459,17 @@ var buildArtistStatDiv = function( data, index ) {
 
     listenButton.append( listenText );
     listenDiv.append( listenButton );
-    infoDiv.append( listenDiv );
+    subInfoDiv.append( listenDiv );
   }
 
+  infoDiv.appendChild( subInfoDiv );
+
+  shell.appendChild( backgroundShadow );
   shell.appendChild( imgDiv );
   shell.appendChild( infoDiv );
 
-  mainContainer.appendChild( shell );
+  subContainer.appendChild( shell );
+  mainContainer.appendChild( subContainer );
 
   return shell;
 };
@@ -404,6 +522,8 @@ var setTime = function( time ) {
           function( result, index ) {
             var newDiv = buildArtistStatDiv( result, index );
             fadeIn( newDiv );
+            // newDiv.style.display = 'block';
+            // newDiv.style.opacity = 1;
           }
         );
       }
@@ -415,20 +535,27 @@ var queryStats = function( term ) {
   if ( activeList !== term ) {
     getTopList( term ).then(
       function( results ) {
-        // remove any existing stat containers
-        while ( mainContainer.hasChildNodes() ) {
-          mainContainer.removeChild( mainContainer.lastChild );
-        };
+        if ( results === 'retry' ) {
+          queryStats( term )
+        }
+        else {
+          // remove any existing stat containers
+          while ( mainContainer.hasChildNodes() ) {
+            mainContainer.removeChild( mainContainer.lastChild );
+          };
 
-        activeList = term;
-        toggleListButtons( term );
+          activeList = term;
+          toggleListButtons( term );
 
-        results.items.forEach(
-          function( result, index ) {
-            var newDiv = buildArtistStatDiv( result, index );
-            fadeIn( newDiv );
-          }
-        );
+          results.items.forEach(
+            function( result, index ) {
+              var newDiv = buildArtistStatDiv( result, index );
+              fadeIn( newDiv );
+              // newDiv.style.display = 'block';
+              // newDiv.style.opacity = 1;
+            }
+          );
+        }
       }
     );
   }
@@ -596,6 +723,42 @@ var getCurrentState = function() {
   xmlHttp.send( JSON.stringify( data ) );
 };
 
+var refreshToken = function( type ) {
+  return new Promise( ( resolve, reject ) => {
+    retryCounter += 1;
+
+    if ( retryCounter < 3 ) {
+      var xmlHttp = new XMLHttpRequest();
+
+      xmlHttp.open( 'POST', '/refresh_token', true );
+      xmlHttp.onreadystatechange = function() {
+        if ( xmlHttp.readyState == 4 && xmlHttp.status == 200 ) {
+          var results = JSON.parse( xmlHttp.response );
+
+          var authExpire = new Date();
+          authExpire.setTime( authExpire.getTime() + ( 60 * 1000 ) );
+          var expires = "expires="+ authExpire.toUTCString();
+          
+          document.cookie = 'auth_token=' + results.access_token + ';' + expires;
+          authToken = results.access_token;
+
+          resolve( 'retry' );
+        }
+        else if ( xmlHttp.readyState == 4 && xmlHttp.status != 200 ) {
+          console.log( 'error' );
+          resolve( refreshToken() );
+        }
+      };
+
+      xmlHttp.send();
+
+    }
+    else {
+      resolve( 'nope' );
+    }
+  } );
+};
+
 var getTopList = function( type ) {
   return new Promise( ( resolve, reject ) => {
     var xmlHttp = new XMLHttpRequest();
@@ -604,7 +767,7 @@ var getTopList = function( type ) {
     xmlHttp.open( 'GET', 'https://api.spotify.com/v1/me/top/' + type + dateParam, true );
     xmlHttp.setRequestHeader( 'Accept', 'application/json' );
     xmlHttp.setRequestHeader( 'Content-Type', 'application/json' );
-    xmlHttp.setRequestHeader( 'Authorization', `Bearer ${authToken}` )
+    xmlHttp.setRequestHeader( 'Authorization', `Bearer ${ authToken }` )
     xmlHttp.onreadystatechange = function() {
       if ( xmlHttp.readyState == 4 && xmlHttp.status == 200 ) {
         var results = JSON.parse( xmlHttp.response );
@@ -612,6 +775,7 @@ var getTopList = function( type ) {
       }
       else if ( xmlHttp.readyState == 4 && xmlHttp.status != 200 ) {
         console.log( 'error' );
+        resolve( refreshToken() );
       }
     };
 
@@ -675,12 +839,12 @@ const play = (
   }
 ) => {
   getOAuthToken( access_token => {
-    fetch( `https://api.spotify.com/v1/me/player/play?device_id=${id}`, {
+    fetch( `https://api.spotify.com/v1/me/player/play?device_id=${ id }`, {
       method: 'PUT',
       body: JSON.stringify( { uris: spotify_uri } ),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
+        'Authorization': `Bearer ${ authToken }`
       },
     } );
   } );
@@ -698,12 +862,12 @@ const playArtist = (
   }
 ) => {
   getOAuthToken( access_token => {
-    fetch( `https://api.spotify.com/v1/me/player/play?device_id=${id}`, {
+    fetch( `https://api.spotify.com/v1/me/player/play?device_id=${ id }`, {
       method: 'PUT',
       body: JSON.stringify( { context_uri: spotify_uri } ),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
+        'Authorization': `Bearer ${ authToken }`
       },
     } );
   } );
@@ -724,10 +888,10 @@ window.onSpotifyWebPlaybackSDKReady = () => {
 
   localPlayerInstance = player;
   // Error handling
-  player.addListener( 'initialization_error', ( { message } ) => { console.error( message); } );
-  player.addListener( 'authentication_error', ( { message } ) => { console.error( message); } );
-  player.addListener( 'account_error', ( { message } ) => { console.error( message); } );
-  player.addListener( 'playback_error', ( { message } ) => { console.error( message); } );
+  player.addListener( 'initialization_error', ( { message } ) => { console.error( message ); } );
+  player.addListener( 'authentication_error', ( { message } ) => { console.error( message ); } );
+  player.addListener( 'account_error', ( { message } ) => { console.error( message ); } );
+  player.addListener( 'playback_error', ( { message } ) => { console.error( message ); } );
 
   // Playback status updates
   player.addListener( 'player_state_changed', state => { console.log( state ); } );
@@ -749,6 +913,56 @@ window.onSpotifyWebPlaybackSDKReady = () => {
 };
 
 var initialize = function( query ) {
+  existingCookie = getCookie( 'accessToken' );
+  authCookie = getCookie( 'auth_token' );
+  refreshCookie = getCookie( 'refresh_token' );
+  existingRefreshCookie = getCookie( 'refreshToken' );
+
+  mobileDevice = isMobile.any();
+
+  var authExpire = new Date();
+  authExpire.setTime( authExpire.getTime() + ( 60 * 1000 ) );
+  var expires = "expires="+ authExpire.toUTCString();
+
+  if ( existingCookie || authCookie ) {
+    if ( existingCookie ) {
+      document.cookie = 'auth_token=' + existingCookie + ';' + expires;
+    }
+    else if ( authCookie) {
+      document.cookie = 'auth_token=' + authCookie + ';' + expires;
+    }
+
+    if ( refreshCookie || existingRefreshCookie ) {
+      if ( existingRefreshCookie ) {
+        document.cookie = 'refresh_token=' + existingRefreshCookie;
+      }
+      else if ( refreshCookie ) {
+        document.cookie = 'refresh_token=' + refreshCookie;
+      }
+    }
+
+    authToken = existingCookie || authCookie;
+    refToken = existingRefreshCookie || refreshToken;
+    document.getElementById( 'login-button-container' ).style.display = 'none';
+    document.getElementById( 'loginButton' ).style.display = 'none';
+
+    artistListButton.style.display = 'block';
+    trackListButton.style.display = 'block';
+
+    shortTermButton.style.display = 'block';
+    mediumTermButton.style.display = 'block';
+    longTermButton.style.display = 'block';
+
+    queryStats( 'artists' );
+  }
+  else {
+    artistListButton.style.display = 'none';
+    trackListButton.style.display = 'none';
+    shortTermButton.style.display = 'none';
+    mediumTermButton.style.display = 'none';
+    longTermButton.style.display = 'none';
+  }
+
   var preTerm;
 
   if ( query && query.length > 0 ) {
@@ -770,38 +984,5 @@ var initialize = function( query ) {
 
   xmlHttp.send();
 };
-
-if ( window.location.hash ) {
-  var queryParams = window.location.hash.slice( 2 ).split( '&' );
-  var result = {};
-  queryParams.forEach( function( param ) {
-      param = param.split( '=' );
-      result[ param[ 0 ] ] = decodeURIComponent( param[ 1 ] || '' );
-  } );
-
-  var params = JSON.parse( JSON.stringify( result ) );
-
-  if ( params.access_token ) {
-    authToken = params.access_token;
-    document.getElementById( 'login-button-container' ).style.display = 'none';
-    document.getElementById( 'loginButton' ).style.display = 'none';
-
-    artistListButton.style.display = 'block';
-    trackListButton.style.display = 'block';
-
-    shortTermButton.style.display = 'block';
-    mediumTermButton.style.display = 'block';
-    longTermButton.style.display = 'block';
-
-    queryStats( 'artists' );
-  }
-}
-else {
-  artistListButton.style.display = 'none';
-  trackListButton.style.display = 'none';
-  shortTermButton.style.display = 'none';
-  mediumTermButton.style.display = 'none';
-  longTermButton.style.display = 'none';
-}
 
 initialize();

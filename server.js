@@ -2,9 +2,9 @@ var express = require( 'express' );
 var path = require( 'path' );
 var ejs = require( 'ejs' );
 var requestPromise = require( 'request-promise' );
-var bodyParser = require('body-parser');
-var cookieParser = require('cookie-parser');
-var querystring = require('querystring');
+var bodyParser = require( 'body-parser' );
+var cookieParser = require( 'cookie-parser' );
+var querystring = require( 'querystring' );
 
 if ( !process.env.NODE_ENV || process.env.NODE_ENV === 'development' ) {
   require( 'dotenv' ).load();
@@ -12,7 +12,7 @@ if ( !process.env.NODE_ENV || process.env.NODE_ENV === 'development' ) {
 
 var CLIENT_ID = process.env.CLIENT_ID,
     CLIENT_SECRET = process.env.CLIENT_SECRET
-    REDIRECT_URI = encodeURI( process.env.REDIRECT_URL );
+    REDIRECT_URI = encodeURI( process.env.REDIRECT_URI );
 
 let token;
 let authToken;
@@ -23,12 +23,12 @@ let refreshToken;
  * @param  {number} length The length of the string
  * @return {string} The generated string
  */
-var generateRandomString = function(length) {
+var generateRandomString = function( length ) {
   var text = '';
   var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
   for (var i = 0; i < length; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
+    text += possible.charAt( Math.floor( Math.random() * possible.length ) );
   }
   return text;
 };
@@ -300,7 +300,7 @@ app.get( '/authorize', function( request, response ) {
   response.cookie( stateKey, state );
 
   // var scope = ["streaming", "user-read-birthdate", "user-read-email", "user-read-private"];
-  var scopes = "streaming user-top-read user-read-birthdate user-read-email user-read-private";
+  var scopes = "streaming user-top-read user-read-birthdate user-read-email user-read-private playlist-modify-public";
   // var scope = [ "user-read-currently-playing", "streaming", "user-read-playback-state", "user-read-birthdate", "user-read-email", "user-read-private", "user-modify-playback-state" ];
 
   response.redirect( 'https://accounts.spotify.com/authorize?' +
@@ -338,29 +338,43 @@ app.get( '/tokencallback', function( request, response ) {
         authToken = results.access_token;
         refreshToken = results.refresh_token;
 
-        response.redirect( '/#' + '?' +
-          querystring.stringify( {
-            access_token: token,
-            refresh_token: refreshToken
-          } )
+        response.cookie(
+          'accessToken',
+          token,
+          { expires: new Date( Date.now() + results.expires_in ) }
         );
+
+        response.cookie( 
+          'refreshToken',
+          refreshToken,
+          { expires: new Date( Date.now() + results.expires_in ) }
+        );
+
+        response.redirect( '/' );
       }
     );
   }
 } );
 
 // requesting access token from refresh token
-app.get( '/refresh_token', function( request, response ) {
-  var refreshToken = request.query.refresh_token;
+app.post( '/refresh_token', function( request, response ) {
   spotifyTokenRequest(
     'https://accounts.spotify.com/api/token',
     {
-      grant_type: 'refresh_token',
-      refresh_token: refreshToken
+      'grant_type': 'refresh_token',
+      'refresh_token': refreshToken
     },
     function( results ) {
-      var token = results.access_token;
-      response.send( results );
+      token = results.access_token;
+      authToken = results.access_token;
+
+      response.cookie(
+        'accessToken',
+        token,
+        { expires: new Date( Date.now() + results.expires_in ) }
+      );
+
+      response.send( { access_token: results.access_token } );
     }
   );
 } );
@@ -385,10 +399,9 @@ app.get( '/', function ( req, res ) {
 app.get( '*', function( request, response ) {
   response.set( 'Cache-Control', 'no-cache' );
   response.render( 'index.html', function( res, req ) {
-
   } );
 } );
 
-app.listen( ( process.env.PORT || 8000 ), function () {
-  console.log( 'BandBrowser listening on port', ( process.env.PORT || 8000 ) );
+app.listen( ( process.env.PORT || 3000 ), function () {
+  console.log( 'Top 20 listening on port', ( process.env.PORT || 3000 ) );
 } );
