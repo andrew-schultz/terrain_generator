@@ -1,66 +1,55 @@
 <!doctype html>
 <html>
   <head>
+    <meta name="viewport" content="width=device-width">
     <link href="stylesheets/main.css" rel="stylesheet" />
-    <!-- Include the AngularJS library -->
+    <link href='https://fonts.googleapis.com/css?family=Lato:400,300,100' rel='stylesheet' type='text/css'>
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <script src="processing.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.0/p5.js"></script>
+    <script language="javascript" type="text/javascript" src="p5.sound.js"></script>
+    <script language="javascript" type="text/javascript" src="p5.dom.js"></script>
   </head>
   <body>
-
-    <!-- <div class="main">
-      <h3 id="mainHeader"></h3>
-      <audio id="audioPlayer" controls>
-
-        <source src="audio/jack_straw.ogg" type="audio/mpeg">
-      </audio>
-      <div id="processingContainer">
-        <canvas data-processing-sources="/processing/terrain_generator/terrain_generator.pde"></canvas>
-      </div>
-    </div> -->
-
-    <!-- band browser template -->
-    <div id="head">
-      <h1 id="title">Band Browser</h1>
-      <p>Type in an artists name</p>
-      <input type="text" id="search"></input>
-    </div>
-    <div id="band_info">
-      <h1 id="name"></h1>
-      <div id="image"></div>
-    </div>
-    <div id="left">
-      <div id="genre_div">
-        <h3 id="g_title"></h3>
-        <ul id="genres"></ul>
-      </div>
-      <h3 id="followers"></h3>
-      <h3 id="popularity"></h3>
-      <div id="top_tracks">
-        <h3 id="tt_title"></h3>
-        <h5 id="tt_subtitle"></h5>
-        <ul id="tracks"></ul>
-      </div>
-      <div id="nowPlaying">
-        <h2 id="npTitle"></h2>
-        <div id="play"></div>
-      </div>
-    </div>
-    <div id="right">
-      <div id="related_artists">
-        <h3 id="ra_title"></h3>
-        <ul id="ra"></ul>
+    <div class="login-button-container" id="login-button-container">
+      <div class="login-container">
+        <p class="login-title">
+          Top 20
+        </p>
+        <p class="login-subheader">
+          View your Top 20 most listened to artists and tracks
+        </p>
+        <div id="login-container">
+          <a href="/authorize" id="loginButton" class="btn btn-primary">Log in with Spotify</a>
+        </div>
       </div>
     </div>
 
-    <div id="albums">
-      <h2 id="albumT"></h2>
+    <div class="button-container list-button-container">
+      <div class="button list-button inactive" id="artist-list-button" onclick="queryStats( 'artists' )">
+        <p>Top Artists</p>
+      </div>
+      <div class="button list-button" id="track-list-button" onclick="queryStats( 'tracks' )">
+        <p>Top Tracks</p>
+      </div>
     </div>
 
-    <!-- Modules -->
+    <div class="button-container time-button-container">
+      <div class="button time-button inactive" id="short-time-button" onclick="setTime( 'short_term' )">
+        <p>Recent</p>
+      </div>
+      <div class="button time-button" id="medium-time-button" onclick="setTime( 'medium_term' )">
+        <p>Mid</p>
+      </div>
+      <div class="button time-button inactive" id="long-time-button" onclick="setTime( 'long_term' )">
+        <p>Long</p>
+      </div>
+    </div>
+
+    <div id="main-container"></div>
+
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
     <script src="javascripts/application.js"></script>
-
-    <!-- Controllers -->
-
-    <!-- Directives -->
   </body>
 </html>
